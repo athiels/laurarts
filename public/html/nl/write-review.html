@@ -1,0 +1,119 @@
+<div class="compact">
+    <h1>Review schrijven</h1>
+
+    <div class="grid_8 grid_shift_2">
+        <p class="intro">
+            Heeft u een schilderij gekocht of gewoon een bezoekje gebracht aan een van onze galerijen?
+            <br>We horen graag meer over uw ervaring met Galerij Thiels. 
+        </p>
+
+        
+        <form id="languageData">
+            <div class="label-input">
+                <label for="title">Titel: *</label>
+                <input type="text" id="title" required>
+            </div>
+            <div class="label-input">
+                <label for="reviewText">Tekst: *</label>
+                <textarea id="reviewText" required></textarea>
+            </div>
+        </form>  
+
+        <form id="fixedData">
+            <div class="label-input">
+                <label for="rating">Score:</label>
+                <div id="rating" class="rating"></div>
+            </div>
+            <div class="label-input">
+                <label for="customerName">Uw naam:</label>
+                <input type="text" id="customerName" >
+            </div>
+            <div class="label-input">
+                <label for="customerName">Uw e-mail adres:</label>
+                <input type="text" id="customerEmail">
+            </div>
+        </form>
+
+        <br class="clear">
+        <p class="errorMessage right" style="display: none;">Gelieve alle velden met een * in te vullen.</p>
+        <br class="clear">
+        <div class="right">
+            <span id="form-feedback"></span>
+            <button type="button" id="sendReviewButton">Versturen</button>    
+        </div>        
+        
+    </div>
+    <br class="clear">
+    <br><br>
+    
+</div>
+
+
+<script>
+
+    setDocumentTitle("Review schrijven");
+    setMetaTag("description", "Deel uw ervaring met ons in de vorm van een review.")
+    
+    $(".rating").rate({
+        max_value: 5,
+        step_size: 0.5,
+        cursor: 'pointer'
+    });
+
+    $("#sendReviewButton").click(save);
+
+    function save() {
+
+        if (!validateForm()) return $(".errorMessage").show();
+
+        disableForm("languageData");
+        disableForm("fixedData");
+        disableButton("sendReviewButton");
+        $("#form-feedback").html('<i class="fas fa-spinner fa-pulse"></i> Uw review wordt verstuurd.')
+         
+
+        var fixedData = getFormData("fixedData", err => {
+            removeNotification(savingNotif);
+            return addNotification("Fout bij opslaan: " + err, "failed");
+        });
+
+        const queryString = window.location.search;
+        const urlParams = new URLSearchParams(queryString);
+        const artist = urlParams.get('artist')
+        if (artist) fixedData.artist = artist;
+
+        var languageData = getFormData("languageData", err => {
+            removeNotification(savingNotif);
+            return addNotification("Fout bij opslaan: " + err, "failed");
+        });
+
+        var formData = new FormData(); 
+        formData.append('lang', getLocalStorage("language"));
+        formData.append('fixedData', JSON.stringify(fixedData));
+        formData.append('languageData', JSON.stringify(languageData));
+
+        var xhr = new XMLHttpRequest();        
+        xhr.open('POST', '/api/review/create', true);
+        xhr.addEventListener('readystatechange', function(e) {
+            console.log(xhr);
+            if (xhr.readyState == 4 && xhr.status == 200) {
+                location.href = "/write-review-success";
+            }
+            else if (xhr.readyState == 4 && xhr.status != 200) {
+
+
+                enableForm("languageData");
+                enableForm("fixedData");
+                enableButton("sendReviewButton");
+                $("#form-feedback").html('')
+
+                $.alert({
+                    title: 'Oei, er liep iets mis.',
+                    content: 'Jouw review kon niet goed ontvangen worden. Probeer het nog eens of kom later terug.',
+                });
+            }
+        });
+        xhr.send(formData);
+    }
+
+</script>

@@ -1,0 +1,70 @@
+<div class="compact">
+    <div class="section-title">Nieuwe kunstwerken</div>
+    <p class="text-center">
+        Bekijk hieronder enkele nieuwe werken. Kom ze snel in het echt aanschouwen in onze galerijen. 
+        <br><a href="/contact">Bekijk hier onze openingstijden.</a>
+    </p>
+    <div id="galleryContainer" class="hideOverflow"></div>
+</div>
+
+<script>
+
+    load("galleryContainer", "/gallery/gallery");
+
+    var artists;
+    getData("/api/artist",
+        data => {
+            artists = data;
+            getGalleryItems();
+        },
+        err => {
+            return console.log("Could not get artists");
+        }
+    );
+
+    function getGalleryItems() {
+        getData("/api/galleryitem/artworks?limit=4", data => {
+            if (!data) return console.log("No data");
+            console.log("artworks", data);
+            
+            // console.log(data);
+            data.forEach((galleryItem) => {
+
+                if (!galleryItem.thumbnail || !galleryItem.photo) return;
+
+                artist = getArtist(galleryItem.artist_id);
+                artistName = artist && artist.fixed && artist.fixed.name;
+
+                let title = (artistName ? artistName : "");
+                title += (artistName && galleryItem.data.name ? " - " : "");
+                title += (galleryItem.data.name ? galleryItem.data.name : "");
+
+                var html = '<a ';
+                html += 'href="/img/uploads/' + getImageFilename(galleryItem.photo) + '"';
+                html += 'data-size="' + galleryItem.photo.metadata.width + 'x' + galleryItem.photo.metadata.height + '"';
+                html += 'data-med="/img/uploads/' + getImageFilename(galleryItem.photo) + '"';
+                html += 'data-med-size="' + galleryItem.photo.metadata.width + 'x' + galleryItem.photo.metadata.width + '">';
+                html += '<img class="new-artworks-image" src="/img/uploads/' + getImageFilename(galleryItem.thumbnail) + '" alt="' + title + '" />';
+                html += '<figure>';
+                html += '<span>' + title + "</span>";
+                html += '<br>';
+                if (galleryItem.data.width && galleryItem.data.height) html += galleryItem.data.width + ' x ' + galleryItem.data.height;
+                if (galleryItem.data.price) html += " | € " + galleryItem.data.price + "<br>";
+                html += '</figure>';
+                html += '</a>';
+
+                $(".gallery").append(html);
+            });
+
+            initGallery();
+
+        }, function (err) { console.log(err); });
+    }
+
+    function getArtist(id) {
+        for (i = 0; i < artists.length; i++) {
+            if (artists[i]._id == id) return artists[i];
+        }
+    }
+
+</script>

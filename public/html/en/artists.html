@@ -1,0 +1,31 @@
+<div class="compact">
+
+    <div><h1>Kunstenaars</h1></div>
+  
+    <div id="artists" class="grid_12"></div>
+    <br class="clear">    
+</div>
+
+
+<script type="text/javascript">
+
+    getData(   
+        "/api/artist", 
+        function(data) {
+            console.log(data);
+            var lang = getLocalStorage("language");
+            data.forEach(artist => {
+                if (artist[lang].show == "false") return;
+                var url = (artist.custom_url.url && artist.custom_url.active == "true") ? artist.custom_url.url : "/artist/id/" + artist._id;
+                var html = '<a href=' + url + '>';
+                html += '<div id="' + artist._id + '" class="grid_3 compactImgInfoContainer"><div class="img"><img src="/img/uploads/' + getImageFilename(artist.avatar.thumbnail) + '" class="bigIcon"></div>';
+                html += '<div class="info"><h4>' + artist[lang].name + '</h4>';
+                html += '</div><br class="clear"></div>';
+                html += '</a>';
+                $("#artists").append(html);
+            });
+            setMainHeight();
+        }
+    );
+
+</script>

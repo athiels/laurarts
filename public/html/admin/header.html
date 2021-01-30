@@ -1,0 +1,70 @@
+<nav>
+    <div class="admin-compact">
+
+        <div class="flex-container-left">
+            <div class="flex-item">
+                <a class="navbar-brand" href="/admin/dashboard/dashboard">
+                    <img src="/img/logo.svg" alt="Logo Galerij Thiels">
+                </a>
+            </div>
+
+            <div class="flex-item">               
+                <div class="flex-container-right">
+                    <div class="flex-item">
+                        <ul class="navbar nav-list">
+                            <li><a href="/admin/gallery/artists">Galerij</a></li>
+                            <li><a href="/admin/statistics/customers">Statistieken</a></li>                            
+                            <li><a href="/admin/sales/customer">Verkoop</a></li>
+                            <li><a href="/admin/cms/artists">Website</a></li>
+                            <li><a href="/admin/config/database">Config</a></li>  
+                            <li id="notifications-button"></li>
+                            <li id="username"></li>
+                            <li><a href="/admin/logout"><i class="fas fa-sign-out-alt" title="Afmelden"></i></a></li>                          
+                        </ul>
+                    </div>
+                    <div class="flex-item">
+                        <div class="toggle-menu">
+                            <i class="fas fa-bars"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+
+
+
+<script>
+
+    $(document).ready(function () {
+        var lang = getLocalStorage("language");
+        $("#" + lang).addClass("languagebar-active");
+
+        var currentpage = window.location.pathname.split("/")[2];
+        $('a[href*=' + currentpage + ']:not(".navbar-brand")').addClass("navbar-active");
+
+        if (user = getUser()) {
+            let admin = getUserPermission("admin");
+            if (admin == "true") $("#username").html('<a href="/admin/config/user/update?id=' + user._id + '" title="' + user.fixed.name + '"><i class="fas fa-user-alt"></i></a>');
+        }
+
+        
+        adminLoad("notifications-button", "notifications/notifications-button");
+    });
+
+    function changeLanguage(lang) {
+        setLocalStorage("language", lang);
+        window.location.reload();
+    }
+
+    $('.toggle-menu').click(function () {
+        $('.navbar').toggle();
+    });
+
+    $(window).resize(function () {
+        if ($(window).width() > 1270) $('.navbar').show();
+        else $('.navbar').hide();
+    });
+</script>

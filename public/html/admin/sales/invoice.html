@@ -1,0 +1,76 @@
+<div class="search">
+    <input type="text" id="input" placeholder="Zoeken..."/> 
+    <div class="button" title="Zoeken"><i class="fas fa-arrow-right"></i></div>
+</div>
+<ul id="admin-table" class="admin-table grid_12"></ul>
+
+<br class="clear">
+
+
+<script type="text/javascript">
+
+    addActionButton("create", "Nieuwe factuur");
+    setMainTitle("Facturen");
+
+    getData( "/api/sales/invoice", data => createAdminSection(data), err => { console.log(err); } );
+
+    function createAdminSection(data) {
+        $("#admin-table").empty();
+
+        console.log("invoices", data);
+        setSubTitle( data.length + " items");
+
+        data.forEach(invoice => {           
+            var html = '<li id="'+invoice._id+'" class="grid_12">';
+            html += '<div class="smartphone-hide">';
+            html += '<div class="grid_1">'+invoice.number+'</div>';
+            html += '<div class="grid_2">'+formatDate(invoice.createdAt)+'</div>';
+            html += '<div class="grid_2">'+invoice.order.customer.data.name+'</div>';
+            html += '<div class="grid_3">';
+            invoice.order.data.artworks.forEach(artwork => {
+                html += artwork.artist + '<br>';
+            });
+            html += '</div>';
+            html += '<div class="grid_4">';
+            invoice.order.data.artworks.forEach(artwork => {
+                html += artwork.description + '<br>';
+            });
+            html += '</div>';            
+            html += '<br class="clear"></div>';
+
+            html += '<div class="smartphone-show">';
+            html += invoice.id + ' - ' + formatDate(invoice.createdAt) + ' | ' + invoice.order.customer.data.name + '<br>';
+            invoice.order.data.artworks.forEach(artwork => {
+                html += artwork.artist + ' - ' + artwork.description + '<br>';
+            });
+            html += '</div>';
+            
+
+            html += '</li>';
+
+            $("#admin-table").append(html);
+        });
+    }
+
+    $(document).on("click", "#admin-table li", function(e) {
+        e.stopPropagation();
+        id = $(this).attr('id');
+        location.href = location.href + "/update?id="+id;
+    });
+
+    $(".search").on("click", ".button", search);
+    $('.search input').keypress(function(event){
+        var keycode = (event.keyCode ? event.keyCode : event.which);
+        if(keycode == '13') search();
+    });
+
+    function search() {
+        var searchString =  $('.search input').val();
+        getData( "/api/sales/invoice?search=" + searchString, data => createAdminSection(data), err => { console.log(err); } );
+    }
+
+    function create() {
+        location.href = "/admin/sales/order/selectorder";
+    }
+
+</script>

@@ -1,0 +1,112 @@
+<div class="search">
+    <input type="text" id="input" placeholder="Zoeken..."/> 
+    <div class="button" title="Zoeken"><i class="fas fa-arrow-right"></i></div>
+</div>
+<div class="clear"></div>
+<div class="filter-bar">
+    <div class="label-next-to-input filter">
+        <label for="payment">Betaling:</label><select name="payment" id="payment">
+            <option value="both">---</option>
+            <option value="paid">Voldaan</option>
+            <option value="unpaid">Niet voldaan</option>
+        </select>
+    </div>
+</div>
+<ul id="admin-table" class="admin-table grid_12"></ul>
+
+<br class="clear">
+
+
+<script type="text/javascript">
+
+    addActionButton("create", "Nieuw order");
+    setMainTitle("Orders");
+
+    var orders;
+
+    if (user = getUser()) {
+        admin = getUserPermission("admin");
+        
+        getData( "/api/sales/order?current=true", data => {
+            orders = data;
+            createAdminSection(data);
+        }, err => { console.log(err); } );
+    }
+
+    function createAdminSection(data) {
+        $("#admin-table").empty();
+        
+        console.log("orders", data);
+        setSubTitle( data.length + " items");
+
+        
+            
+
+        data.forEach(order => {           
+            var html = '<li id="'+order._id+'" class="grid_12">';
+            html += '<div class="smartphone-hide">';                
+            if (admin == "true") html += '<div class="grid_1">'+order.number+'</div>';
+            html += '<div class="grid_2">'+formatDate(order.createdAt)+'</div>';
+            html += '<div class="grid_2">'+order.customer.data.name+'</div>';
+            html += '<div class="grid_2 ellipsis">'+order.customer.data.deliveryaddress.postcode + ' ' + order.customer.data.deliveryaddress.city +'</div>';
+            html += '<div class="grid_4">';
+            order.data.artworks.forEach(artwork => {
+                html += '<div class="ellipsis" style="margin: 0; padding: 0;">' + artwork.artist + ': ' + artwork.description.replaceAll(/<br \/>/g, " ") + '</div>';
+            });
+            html += '</div>';
+            html += '<div class="grid_1 text-center">';
+                if (order.invoiced) html += 'Gefactureerd';
+            html += '</div>';      
+            html += '<br class="clear"></div>';
+
+            // html += '<div class="smartphone-show">';
+            // html += order.id + ' - ' + formatDate(order.createdAt) + ' | ' + order.customer.data.name + '<br>';
+            // order.data.artworks.forEach(artwork => {
+            //     html += artwork.artist + ' - ' + artwork.description + '<br>';
+            // });
+            // html += '</div>';
+            
+
+            html += '</li>';
+
+            $("#admin-table").append(html);
+        });
+    }
+
+    $(document).on("click", "#admin-table li", function(e) {
+        e.stopPropagation();
+        id = $(this).attr('id');
+        location.href = location.href + "/update?id="+id;
+    });
+
+    $(".search").on("click", ".button", search);
+    $('.search input').keypress(function(event){
+        var keycode = (event.keyCode ? event.keyCode : event.which);
+        if(keycode == '13') search();
+    });
+
+    function search() {
+        var searchString =  $('.search input').val();
+        getData( "/api/sales/order?search=" + searchString, data => createAdminSection(data), err => { console.log(err); } );
+    }
+
+    function create() {
+        location.href = "/admin/sales/customer/selectcustomer";
+    }
+
+    $(".filter-bar input, .filter-bar select").change(filter);
+
+    function filter() {
+        let payment = $("#payment").val();
+
+        let data = Array();
+        orders.forEach(order => {
+            if (payment == "both") data.push(order);
+            else if (payment == "paid" && order.data.paid) data.push(order);
+            else if (payment == "unpaid" && !order.data.paid) data.push(order);
+        });
+
+        createAdminSection(data);
+    }
+
+</script>

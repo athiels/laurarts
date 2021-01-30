@@ -1,0 +1,11 @@
+
+<a id="manual-ajax">second example</a>
+
+<script>
+    // Open modal in AJAX callback
+    $('#manual-ajax').click(function(event) {
+        event.preventDefault();
+        this.blur(); // Manually remove focus from clicked link.
+        adminLoadModal("/sales/customer");  // this.href
+    });
+</script>

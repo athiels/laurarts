@@ -1,0 +1,45 @@
+<div class="compact" >
+    <div  class="grid_4 center-div">
+        <h1>Adminpaneel</h1>
+        <form id="loginForm">
+            <input id="email" class="wide" type="text" placeholder="* E-mail adres" required>
+            <input id="password" class="wide" type="password" placeholder="* Wachtwoord" required>
+            <button id="login"  class="right" type="button">Aanmelden</button>
+            <br class="clear">
+        </form>
+        <br class="clear"><br>
+        
+        <div class="text_center">
+            <a href="/">Terugkeren naar de website</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    $( document ).ready(function() {
+        setMainHeight();
+    });
+
+    $("#login").click(function() {
+
+        if (!validateForm()) return $("#loginForm").append('<p class="errorMessage">Gelieve alle velden met een * in te vullen.</p>');
+        var formData = getFormData("loginForm");
+        
+        postData("/api/admin/user/login", formData, 
+            function(data) {
+                console.log(data);
+                if (data.token) setLocalStorage("token", data.token);
+                if (data.user) setLocalStorage("user", JSON.stringify(data.user));
+                location.reload();
+            }, 
+            function(){
+                return $("#loginForm").append('<p class="errorMessage">Aanmelden mislukt.</p>');
+            });
+    });
+
+    $(document).keypress(function(event){
+        var keycode = (event.keyCode ? event.keyCode : event.which);
+        if(keycode == '13') $("#login").click();
+    });
+
+</script>

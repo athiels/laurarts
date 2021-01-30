@@ -1,0 +1,5 @@
+User-Agent: *
+Disallow: /components/
+
+Sitemap: https://laurarts.be/sitemap.xml
+Sitemap: https://www.laurarts.be/sitemap.xml

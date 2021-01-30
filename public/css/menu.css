@@ -1,0 +1,125 @@
+.flex-container-left {
+	display: flex;
+	justify-content: space-between;
+}
+.flex-container-right {
+	display: flex;
+	justify-content: flex-end;
+}
+
+.navbar-brand {
+	border: none !important;
+}
+
+.nav-list li {	
+	display: inline-block;
+}
+
+.nav-list > li > a {
+	text-decoration: none;
+}
+.navbar > li > a {
+	font-size: var(--font-size);
+	text-transform: uppercase;
+	color: var(--main-color);
+	border-bottom: solid 2px transparent;
+}
+.navbar > li > a:hover, .nav > li > a:focus {
+	text-decoration: none;
+	color: var(--main-color-darker);
+	border-bottom: solid 2px var(--main-color-highlight);
+}
+.navbar > li {
+	padding: 20px 0 0 20px;
+}
+.navbar-active, .languagebar-active {
+	color: var(--main-color-darker) !important;
+	border-bottom: solid 2px var(--main-color-highlight) !important;
+}
+#footer .navbar-active {
+	color: var(--main-color-comp-lighter) !important;
+	border-bottom: solid 2px var(--main-color-highlight) !important;
+}
+
+.toggle-menu {
+	font-size: 32px !important;
+	display: none;
+}
+.toggle-menu:hover {
+	cursor: pointer;
+}
+
+.navbar {
+	display: block;
+	/* margin-top: 20px; */
+}
+
+.navbar-brand img {
+	width: 320px;
+}
+
+@media(max-width: 1270px) {
+	.nav-list li {
+		display: block;
+	}
+	.toggle-menu {
+		display: block;
+	}
+	.navbar {
+		display: none;
+		position: absolute;
+		top: 60px;
+		left: 0;
+		width: 100%;
+		padding: 25px;
+		background-color: var(--main-bg-color);
+		z-index: 10;
+		text-align: center;
+
+		-webkit-box-shadow: 0px 0px 12px -3px rgba(0,0,0,0.4);
+		-moz-box-shadow: 0px 0px 12px -3px rgba(0,0,0,0.4);
+		box-shadow: 0px 0px 12px -3px rgba(0,0,0,0.4);
+	}
+	.navbar-brand img {
+		width: 300px;
+	}
+	.navbar > li {
+		padding: 25px 0 0 20px;
+	}
+}
+
+
+
+/* Hide languagebar for now, since there is only one language  */
+.languagebar {
+	display: none;
+}
+
+.notifications-button {
+	position: relative;
+	min-width: 30px;
+	height: 30px;
+	text-align: center;
+	border-radius: 15px;
+	padding: 3px 8px;
+	border: 1px solid transparent;
+}
+.notifications-button:hover {
+	cursor: pointer;
+	border: 1px solid var(--main-color-highlight);
+}
+.notifications-button.active {
+	background-color: var(--main-color-highlight);
+}
+/* .notifications-button span {
+  position: absolute;
+  top: -8px;
+  left: 18px;
+  width: 20px;
+  height: 20px;
+  font-size: 13px;
+  text-align: center;
+  border-radius: 50%;
+  background-color: var(--main-color-highlight);
+  border: 2px solid white;
+} */

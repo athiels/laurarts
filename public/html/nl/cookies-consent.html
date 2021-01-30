@@ -1,0 +1,54 @@
+<div class="overlay"></div>
+<div id="accept-cookies" class="popup">
+    <h4><i class="fas fa-cookie-bite"></i> Cookies accepteren </h4>
+    <p>
+        Deze website gebruikt cookies om uw webbezoek te optimaliseren en inzichten te verkrijgen in de manier waarop de website gebruikt wordt.
+        <br>
+        <a href="/cookies" class="text-smallest">Lees meer over ons gebruik van cookies.</a>
+    </p>
+
+    <button class="acceptAllCookiesButton btn-primary right" >Alle cookies accepteren</button>
+    <button id="manageCookiesButton" class="right">Aanpassen</button> 
+    <div class="clear"></div>
+</div>
+
+<div id="set-cookies" class="popup" style="display: none;">
+    <h4><i class="fas fa-cookie-bite"></i> Cookies instellen</h4>
+    <br>
+    <input type="checkbox" name="necessaryCookies" id="necessaryCookies" checked disabled><label for="necessaryCookies">Noodzakelijke cookies</label>
+    <p class="info">Deze cookies zijn noodzakelijk voor de goede werking van de website.</p>
+    <br>
+    <input type="checkbox" name="analyticalCookies" id="analyticalCookies"><label for="analyticalCookies">Analytische cookies</label>
+    <p class="info">Deze cookies worden gebruikt om analyses te maken over het gebruik van onze website.</p>
+    <br>
+    <p class="info"><a href="/cookies">Lees meer over ons gebruik van cookies.</a></p>
+    <br>
+    <button class="acceptAllCookiesButton btn-primary right">Alle cookies accepteren</button>
+    <button id="saveCookieSettingsButton" class="right">Opslaan</button>
+    <div class="clear"></div>
+    
+</div>
+
+<script>
+    if (getLocalStorage("cookiesAccepted")) $("#cookiesConsent").hide();
+
+    $(".acceptAllCookiesButton").click(function() {
+        setLocalStorage("cookiesAccepted", true);
+        setLocalStorage("analyticsCookiesAccepted", true);
+        location.reload();
+    });
+
+    $("#saveCookieSettingsButton").click(function() {
+        let analyticsCookiesAccepted = $("#analyticalCookies").prop("checked");
+        setLocalStorage("cookiesAccepted", true);
+        setLocalStorage("analyticsCookiesAccepted", analyticsCookiesAccepted);
+        location.reload();
+    });
+
+    $("#manageCookiesButton").click(function() {
+        $("#accept-cookies").hide();
+        $("#set-cookies").show();
+    });
+
+
+</script>

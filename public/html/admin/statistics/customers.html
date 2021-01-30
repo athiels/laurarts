@@ -1,0 +1,43 @@
+<div id="chart-container"></div>
+
+<script type="text/javascript">
+
+    FusionCharts.ready(function () {
+        getData("/api/sales/customer?limit=1000", customers => {
+            customers = customers.docs;
+            customers = customers.filter(customer => { return customer.data.deliveryaddress.country_code == "BE"; });
+            customers.forEach(customer => { customer.region = customer.data.deliveryaddress.region; });
+            customersGroupedByRegion = groupBy(customers, "region");
+            var data = Array();
+            customersGroupedByRegion.forEach(customersPerRegion => {
+                if (!customersPerRegion[0].region) return;
+                data.push({
+                    label: customersPerRegion[0].region,
+                    value: customersPerRegion.length,
+                });
+            });
+
+            FusionCharts.ready(function () {
+                var chartObj = new FusionCharts({
+                    type: 'doughnut2d',
+                    renderAt: 'chart-container',
+                    width: '600',
+                    height: '400',
+                    dataFormat: 'json',
+                    dataSource: {
+                        "chart": {
+                            "caption": "Klanten per provincie",
+                            "subCaption": customers.length + " klanten",
+                            "showLegend": "1",
+                            "showTooltip": "1",
+                            "theme": "fusion"
+                        },
+                        "data": data,
+                    }
+                });
+                chartObj.render();
+            }, err => { console.log(err); });
+        });
+    });
+
+</script>

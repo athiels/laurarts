@@ -1,0 +1,119 @@
+<div id="admin-section"></div>
+
+<script type="text/javascript">
+
+    addActionSelect("changeLang", [{value: "nl", text: "Nederlands"}, {value: "fr", text: "Frans"}, {value: "en", text: "Engels"}]);
+    addActionButton("back", "Terug");
+    addActionButton("save", "Opslaan");
+    addActionMenu([
+        { id: "remove", label: "Verwijderen" }
+    ]);
+    setMainTitle("Wijzig kunstenaar");
+
+    function main() {
+        getData( "/api/artist?id="+getUrlParam("id"), data => { createAdminSection(data) });
+    }
+    main();
+
+    function createAdminSection(data) {
+
+        var lang = getAdminLang();       
+
+        $("#admin-section").empty();
+
+        console.log(data);
+        
+        var html = '<div class="grid_6">';
+                
+        html += '<h5>Vaste gegevens</h5>';
+        html += '<form id="fixedData">';
+        html += adminCreateBigImageUpload("photo", "", "Foto");
+        html += adminCreateInput("text", "name", data.fixed.name, "Naam");
+        //html += adminCreateSelect([{value: 'male', text: "Man"}, {value: 'female', text: "Vrouw"}], "sex", getAtt(data, lang, "sex"), "Geslacht");        
+        html += adminCreateSelect([{value: "true", text: "Ja"}, {value: "false", text: "Nee"}], "show", data.fixed.show, "Zichtbaar");
+        html += adminCreateSelect([{value: "false", text: "Gebruik ID URL"}, {value: "true", text: "Gebruik " + data.fixed.custom_url }], "custom_url_active", data.fixed.custom_url_active, "URL");
+        html += '<a class="right" href="/admin/cms/urlrewrite/create?original_url=/artist/id/'+data._id+'&new_url=' + data.fixed.custom_url + '&closeonsave=true" target="_blank"><i class="fas fa-link"></i> URL Rewrite aanmaken</a><br class="clear"><br>';
+        html += adminCreateTextarea("meta_description", data.fixed.meta_description, "Meta beschrijving", 160);
+        html += '</form><br><br>';
+
+        html += '<h5>Taal afhankelijke gegevens</h5>';
+        html += '<form id="languageData">';
+        html += adminCreateTextarea("short_description", getAtt(data, lang, "short_description"), "Intro");
+        html += adminCreateTextarea("biography", getAtt(data, lang, "biography"), "Biografie");
+        html += '</form>';
+        
+        html += '</div>';
+
+        if (data.avatar) html += '<div class="grid_6"><img class="updateImagePreview small-img"  src="/img/uploads/' + getImageFilename(data.avatar.thumbnail) + '"/></div>';
+
+        $("#admin-section").html(html);
+    } 
+
+    function save() {
+
+        var savingNotif = addNotification('<i class="fas fa-spinner fa-pulse"></i> Bezig met opslaan...');
+
+        files = $('#photo').prop('files');
+        files = [...files];
+        file = files[0];
+
+        var fixedData = getFormData("fixedData", err => {
+            removeNotification(savingNotif);
+            return addNotification("Fout bij opslaan: " + err, "failed");
+        });
+        var languageData = getFormData("languageData", err => {
+            removeNotification(savingNotif);
+            return addNotification("Fout bij opslaan: " + err, "failed");
+        });
+
+        var formData = new FormData();
+        $("input[type=hidden]").each(function() {
+            formData.append($(this).attr('id'), $(this).val());
+        });
+        formData.append('lang', getAdminLang());
+        formData.append('fixedData', JSON.stringify(fixedData));
+        formData.append('languageData', JSON.stringify(languageData));
+        formData.append('file', file);
+
+        var xhr = new XMLHttpRequest();        
+        xhr.open('POST', '/api/artist/update', true);
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        xhr.setRequestHeader('authorization', getLocalStorage("token"));
+
+        xhr.addEventListener('readystatechange', function(e) {
+            if (xhr.readyState == 4 && xhr.status == 200) {
+                removeNotification(savingNotif);
+                addNotification("Succesvol opgeslagen.", "success");
+                main();
+            }
+            else if (xhr.readyState == 4 && xhr.status != 200) {
+                removeNotification(savingNotif);
+                var response = JSON.parse(xhr.response);
+                addNotification("Fout bij opslaan: " + response.err, "failed");
+            }
+        });
+        xhr.send(formData);
+    }
+
+    function remove() {
+        confirm("Verwijderen", "Zeker dat je deze artiest wil verwijderen?", function() {
+            var removingNotif = addNotification('<i class="fas fa-spinner fa-pulse"></i> Bezig met opslaan...');
+            var formData = {};
+            $("input[type=hidden]").each(function() {
+                formData[$(this).attr('id')] = $(this).val();
+            });
+            postData( "/api/artist/delete", formData, data => {
+                removeNotification(removingNotif);
+                back();
+            }, err => { 
+                removeNotification(removingNotif);
+                addNotification("Fout bij verwijderen: " + JSON.stringify(err), "failed");
+            });
+        }) ;
+    }
+
+    function changeLang() {
+        main();
+    }
+
+</script>

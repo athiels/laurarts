@@ -1,0 +1,45 @@
+<div class="compact">        
+        <div id="admin-section"></div>
+    </div>
+    
+    <script type="text/javascript">
+    
+        addActionButton("back", "Terug");
+        addActionButton("save", "Opslaan");
+    
+        function createAdminSection() {
+
+            var original_url = getUrlParam("original_url");
+            var new_url = getUrlParam("new_url");
+
+            var html = '<form id="editForm" class="grid_6">';
+            html += adminCreateInput("text", "original_url", original_url, "Originele URL");
+            html += adminCreateInput("text", "new_url", new_url, "Nieuwe URL");
+            html += '</form>'; 
+            $("#admin-section").html(html);
+        } 
+        createAdminSection();
+    
+        function save() {
+            var formData = getFormData("editForm");
+            for (var key in formData) {
+                if (formData.hasOwnProperty(key)) {
+                    formData[key] = getHrefFromUrl(formData[key]);
+                }
+            }
+
+            postData( "/api/urlrewrite/create", formData, data => {                
+                if (getUrlParam("closeonsave") == "true") return window.close();
+                return back();
+             }, err => { 
+                addNotification("Fout bij opslaan: " + JSON.stringify(err), "failed");
+             });
+        }
+
+        function getHrefFromUrl(url) {
+            try {
+                url = new URL(url);
+                return url.pathname;
+            } catch(err) { return url; }            
+        }
+    </script>

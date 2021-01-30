@@ -1,0 +1,81 @@
+<div class="compact">
+    <div class="grid_8 grid_shift_2">
+        <div class="switching-columns text-center">
+            <div class="column">
+                <div class="text-center">
+                    <img src="/img/favicon.png" class="small-img shadow" alt="Afbeelding Galerij Thiels">
+                </div>
+            </div>
+
+            <div id="newsletter-subscription-form" class="column align-left-all">
+                <div class="section-title align-left-lg" >Nieuwsbrief</div>
+                <p>
+                    Blijft u graag op hoogte van de gebeurtenissen bij Galerij Thiels? 
+                    <br>
+                    Geef je naam en email adres op en ontdek alles over onze kunstenaars, galerijen, beurzen en nog veel meer.
+                </p>
+                
+                <form id="newsletter-subscription">
+                    <input type="text" id="name" placeholder="* Uw naam" required>
+                    <br>
+                    <input type="email" id="email" placeholder="* Uw e-mail adres" required>
+                    <br>
+                </form>
+                <div class="errorMessage right text-smaller"></div><div class="clear"></div>
+                <div id="form-feedback" class="right text-smaller"></div><div class="clear"></div>
+                <button id="newsletter-subscription-button" class="right" >Ik ontvang graag de nieuwsbrief</button><div class="clear"></div>
+            </div>
+
+            <div id="newsletter-subscription-success" class="column align-left-lg" style="display: none;">
+                <div class="section-title align-left-lg" >Nieuwsbrief</div>
+                <p>
+                    Bedankt, <span id="newsletterSubscrtiptionName"></span>! Super fijn dat u geïnteresseerd bent in Galerij Thiels. 
+                    <br>We hebben uw inschrijving goed ontvangen en u een e-mail ter bevestiging gestuurd.
+                </p>
+                <p class="text-smaller">
+                    Wenst u de nieuwsbrief niet meer te ontvangen, dan kan u steeds opzeggen via 
+                    <a href="mailto:info@galerijthiels.be"> info@galerijthiels.be</a> of via de link onderaan de nieuwsbrief.
+                </p>
+            </div>
+
+        </div>
+    </div>
+    <div class="clear"></div>
+</div>
+
+<script>
+
+    $("#newsletter-subscription-button").click(subscribeToNewsletter);
+
+    function subscribeToNewsletter() {
+
+        if (!validateForm()) return $(".errorMessage").text("Gelieve alle velden met een * in te vullen.").show();
+
+        disableForm("newsletter-subscription");
+        disableButton("newsletter-subscription-button");
+        $("#form-feedback").html('<i class="fas fa-spinner fa-pulse"></i> Uw inschrijving wordt verstuurd.');
+
+        const subscriptionData = getFormData("newsletter-subscription", err => {
+            return console.log(err);
+        });
+
+        postData("/api/newsletter/subscribe", subscriptionData, 
+            data => {
+                $("#newsletter-subscription-form").hide();
+                $("#newsletterSubscrtiptionName").text(subscriptionData.name);
+                $("#newsletter-subscription-success").show();
+            },
+            error => {
+                enableForm("newsletter-subscription");
+                enableButton("newsletter-subscription-button");
+                $("#form-feedback").html('');
+
+                $.alert({
+                    title: 'Oei, er liep iets mis.',
+                    content: 'Jouw inschrijving kon niet goed ontvangen worden. Probeer het nog eens of kom later terug.',
+                });
+            }
+        );
+
+    }
+</script>

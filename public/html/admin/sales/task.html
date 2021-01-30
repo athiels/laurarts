@@ -1,0 +1,48 @@
+<ul id="admin-table" class="admin-table grid_12">
+<li class="default">
+        <i class="fas fa-tasks""></i><br>
+        Geen taken
+    </li>
+</ul>
+
+<br class="clear">
+
+
+<script type="text/javascript">
+
+    addActionButton("create", "Nieuwe taak");
+    setMainTitle("Taken");
+
+    getData( "/api/sales/task", data => {
+            createAdminSection(data);
+        }, err => { console.log(err); } );
+
+    function createAdminSection(data) {
+        console.log("tasks", data);
+        setSubTitle( data.length + " items");
+        if (!data.length) return;
+
+        $("#admin-table").empty();
+
+        data.forEach(task => {           
+            let html = '<li id="'+task._id+'" class="grid_12">';             
+            html += '<div class="grid_2">'+formatDate(task.createdAt)+'</div>';
+            html += '<div class="grid_2">'+task.data.title+'</div>';
+            html += '<div class="grid_8 ellipsis">'+task.data.description+'</div>';
+            html += '</li>';
+
+            $("#admin-table").append(html);
+        });
+    }
+
+    $(document).on("click", "#admin-table li:not(.default)", function(e) {
+        e.stopPropagation();
+        id = $(this).attr('id');
+        location.href = location.href + "/update?id="+id;
+    });
+
+    function create() {
+        location.href = "/admin/sales/task/create";
+    }
+
+</script>

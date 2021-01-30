@@ -1,0 +1,78 @@
+<div class="search">
+    <input type="text" id="input" placeholder="Zoeken..." />
+    <div class="button" title="Zoeken"><i class="fas fa-arrow-right"></i></div>
+</div>
+<ul id="admin-table" class="admin-table grid_12 sortableList"></ul>
+
+<br class="clear">
+
+
+<script type="text/javascript">
+
+    addActionButton("create", "Nieuwe klant");
+    setMainTitle("Klanten");
+
+    var customers;
+
+    function main() {
+        getData("/api/sales/customer", data => {
+            customers = data.docs;
+            createAdminSection(data)
+        }, err => { console.log(err); });
+    }
+    main();
+
+    function createAdminSection(data) {
+        $("#admin-table").empty();
+
+        console.log(data);
+        // data = data.reverse();
+        setSubTitle(data.numberOfDocuments + " items");
+
+        data.docs.forEach(customer => {
+            let html = '<li id="' + customer._id + '" class="grid_12">';
+            html += '<div class="grid_2 ellipsis">' + customer.data.name + '</div>';
+            html += '<div class="grid_3 ellipsis">'; 0
+            html += customer.data.deliveryaddress.street + ' ' + customer.data.deliveryaddress.house_number;
+            if (customer.data.deliveryaddress.box_number) html += ' bus ' + customer.data.deliveryaddress.box_number;
+            html += '<br>';
+            html += customer.data.deliveryaddress.postcode + ' ' + customer.data.deliveryaddress.city;
+            html += '</div>';
+            html += '<div class="grid_3 ellipsis">' + customer.data.email + '</div>';
+            html += '<div class="grid_2 ellipsis">' + (customer.data.phone ? customer.data.phone : customer.data.mobile) + '</div>';
+            html += '</li>';
+
+            $("#admin-table").append(html);
+        });
+        setMainHeight();
+    }
+
+    $(document).on("click", "#admin-table li", function (e) {
+        e.stopPropagation();
+        id = $(this).attr('id');
+        location.href = location.href + "/update?_id=" + id;
+    });
+
+    function create() {
+        location.href = location.href + "/create";
+    }
+
+    $(".search").on("click", ".button", search);
+    $('.search input').keypress(function (event) {
+        var keycode = (event.keyCode ? event.keyCode : event.which);
+        if (keycode == '13') search();
+    });
+
+    function search() {
+        var searchString = $('.search input').val();
+        //getData("/api/sales/customer?search=" + searchString, data => createAdminSection(data), err => { console.log(err); });
+        if (searchString) {
+            // var searchResults = customers.filter(customer => { return customer.data_string.toLowerCase().indexOf(searchString.toLowerCase()) > -1; });
+            // createAdminSection(searchResults);
+            getData("/api/sales/customer?search=" + searchString, data => createAdminSection(data), err => { console.log(err); });            
+        } else {
+            main();
+        }
+    }
+
+</script>

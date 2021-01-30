@@ -1,0 +1,110 @@
+<div class="filter-bar">
+    <div class="checkbox-label filter">
+        <input type="checkbox" id="showVisible" name="showVisible" checked><label for="showVisible">Zichtbaar</label> 
+    </div>
+    <div class="checkbox-label filter">
+        <input type="checkbox" id="showInvisible" name="showInvisible" checked><label for="showInvisible">Niet zichtbaar</label>
+    </div>
+</div>
+<ul id="admin-table" class="admin-table grid_12 sortableList"></ul>
+<div class="test" ></div>
+<br class="clear">
+
+<script type="text/javascript">
+
+    addActionButton("back", "Terug");
+    addActionButton("create", "Nieuwe nieuw kunstwerk");
+    addActionButton("savePositions", "Volgorde opslaan");
+
+    var galleryItemList;
+
+    var artist_id = getUrlParam("artist_id");
+    getData( "/api/artist?id="+artist_id, data => { setMainTitle("Galerij " + data.fixed.name); });
+
+    getData( 
+        "/api/galleryitem?artist_id="+artist_id, (data) => { 
+            galleryItemList = data;
+            createAdminSection(data) },
+        function(err) {
+            return addNotification("Fout bij het ophalen: " + JSON.stringify(err), "failed");
+        }
+    );
+
+    function createAdminSection(data) {
+        if (!data) return addNotification("Geen data ontvangen van server.", "failed");
+
+        $("#admin-table").empty();
+
+        console.log(data);
+        setSubTitle( data.length + " items");
+
+        data.forEach(galleryItem => {           
+            var html = '<li id="'+galleryItem._id+'" class="grid_12">';
+            html += '<div class="grid_1 text-center sort-handle"><i class="fas fa-sort"></i></div>';
+            html += '<div class="grid_1">';
+            if (galleryItem.thumbnail) html += '<img class="admin-img sphere" src="/img/uploads/' + getImageFilename(galleryItem.thumbnail) + '"/>';
+            html += '</div>';
+            html += '<div class="grid_4">'+galleryItem.data.name+'</div>';
+            html += '<div class="grid_2">'+galleryItem.data.width+' x '+galleryItem.data.height+'</div>';
+            html += '<div class="grid_2">€'+galleryItem.data.price+'</div>';
+            
+            if (galleryItem.data.show == 'false') html += '<div class="grid_2"><i class="fas fa-eye-slash right"></i></div>';
+
+            html += '</li>';
+
+            $("#admin-table").append(html);
+
+            var sortableList = document.getElementById('admin-table');
+            new Sortable(sortableList, {
+                animation: 150,
+                scroll: true,
+                scrollSensitivity: 150,
+                scrollSpeed: 15,
+                forceFallback: true,
+                handle: ".sort-handle"
+            });
+        });
+        setMainHeight();
+    }
+
+    $(document).on("click", "#admin-table li", function() {
+        id = $(this).attr('id');
+        var search = location.search + '&id=' + id;
+        location.href = location.protocol + '//' + location.host + location.pathname + "/update" + search;
+    });
+
+    function create() {
+        location.href = location.protocol + '//' + location.host + location.pathname + "/create" + location.search;
+    }
+
+    function savePositions() {
+        var positionList = Array();
+        $("#admin-table li").each( (i, element) => {
+            positionList.push( { id: $(element).attr('id'), position: i } );
+        });
+
+        postData( "/api/galleryitem/update-positions", positionList, data => { 
+           return addNotification("Succesvol opgeslagen.", "success");
+        }, err => { 
+            return addNotification("Fout bij verwijderen: " + JSON.stringify(err), "failed");
+        });
+    }
+
+    $(".filter-bar input").change(filter);
+
+    function filter() {
+        let showVisible = $("#showVisible").prop('checked');
+        let showInvisible = $("#showInvisible").prop('checked');
+
+        let data = Array();
+        galleryItemList.forEach(galleryItem => {
+            let showGalleryItem = (galleryItem.data.show == "true" ? true : false);
+
+            if (showGalleryItem && showVisible) data.push(galleryItem);
+            if (!showGalleryItem && showInvisible) data.push(galleryItem);
+        });
+
+        createAdminSection(data);
+    }
+
+</script>

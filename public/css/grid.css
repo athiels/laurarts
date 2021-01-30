@@ -1,0 +1,195 @@
+.grid_1,
+.grid_2,
+.grid_3,
+.grid_4,
+.grid_5,
+.grid_6,
+.grid_7,
+.grid_8,
+.grid_9,
+.grid_10,
+.grid_11,
+.grid_12 {
+  display: inline;
+  float: left;
+  position: relative;
+  min-height: 1px;
+  box-sizing: border-box;
+}
+
+.grid_1 {
+  width: 8.33%;
+}
+.grid_2 {
+  width: 16.66%;
+}
+.grid_3 {
+  width: 25%;
+}
+.grid_4 {
+  width: 33.33%;
+}
+.grid_5 {
+  width: 41.66%;
+}
+.grid_6 {
+  width: 50%;
+}
+.grid_7 {
+  width: 58.33%;
+}
+.grid_8 {
+  width: 66.67%;
+}
+.grid_9 {
+  width: 75%;
+}
+.grid_10 {
+  width: 83.33%;
+}
+.grid_11 {
+  width: 91.66%;
+}
+.grid_12 {
+  width: 100%;
+}
+
+@media (max-width: 750px) {
+  .grid_1 {
+    width: 100%;
+  }
+  .grid_2 {
+    width: 100%;
+  }
+  .grid_3 {
+    width: 100%;
+  }
+  .grid_4 {
+    width: 100%;
+  }
+  .grid_5 {
+    width: 100%;
+  }
+  .grid_6 {
+    width: 100%;
+  }
+  .grid_7 {
+    width: 100%;
+  }
+  .grid_8 {
+    width: 100%;
+  }
+  .grid_9 {
+    width: 100%;
+  }
+  .grid_10 {
+    width: 100%;
+  }
+  .grid_11 {
+    width: 100%;
+  }
+  .grid_12 {
+    width: 100%;
+  }
+}
+
+.grid_shift_1 {
+  margin-left: 8.33%;
+}
+.grid_shift_2 {
+  margin-left: 16.66%;
+}
+.grid_shift_3 {
+  margin-left: 25%;
+}
+.grid_shift_4 {
+  margin-left: 33.33%;
+}
+.grid_shift_5 {
+  margin-left: 41.66%;
+}
+.grid_shift_6 {
+  margin-left: 50%;
+}
+.grid_shift_7 {
+  margin-left: 58.33%;
+}
+.grid_shift_8 {
+  margin-left: 66.67%;
+}
+.grid_shift_9 {
+  margin-left: 75%;
+}
+.grid_shift_10 {
+  margin-left: 83.33%;
+}
+.grid_shift_11 {
+  margin-left: 91.66%;
+}
+.grid_shift_12 {
+  margin-left: 100%;
+}
+
+@media (max-width: 750px) {
+  .grid_shift_1 {
+    margin-left: 0;
+  }
+  .grid_shift_2 {
+    margin-left: 0;
+  }
+  .grid_shift_3 {
+    margin-left: 0;
+  }
+  .grid_shift_4 {
+    margin-left: 0;
+  }
+  .grid_shift_5 {
+    margin-left: 0;
+  }
+  .grid_shift_6 {
+    margin-left: 0;
+  }
+  .grid_shift_7 {
+    margin-left: 0;
+  }
+  .grid_shift_8 {
+    margin-left: 0;
+  }
+  .grid_shift_9 {
+    margin-left: 0;
+  }
+  .grid_shift_10 {
+    margin-left: 0;
+  }
+  .grid_shift_11 {
+    margin-left: 0;
+  }
+  .grid_shift_12 {
+    margin-left: 0;
+  }
+}
+
+.clearfix {
+  overflow: auto;
+}
+
+.clearfix::after {
+  content: "";
+  clear: both;
+  display: table;
+}
+
+.left {
+  float: left;
+}
+
+.right {
+  float: right;
+}
+
+.clear {
+  clear: both;
+  height: 0;
+  line-height: 0;
+  font-size: 0;
+}

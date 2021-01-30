@@ -1,0 +1,53 @@
+<div class="kpi-bar no-top-margin">
+    <div class="compact"></div>
+</div>
+
+<script>
+
+    getData("/api/exposition", data => {
+        console.log("exposition", data);
+
+        var lang = getLocalStorage("language");
+        var currentExpositions = Array();
+        data.forEach(exposition => {
+            if (exposition.fixed.show == "false") return;
+
+            var startdate = Date.parse(exposition.fixed.startdate);
+            var enddate = new Date(exposition.fixed.enddate);
+            enddate.setHours(23,59,59,999);            
+            enddate = Date.parse(enddate);
+            var today = Date.now();
+            var numberOfDaysToStart = (startdate - today) / (24 * 3600 * 1000);
+            var expositionRunning = (startdate <= today && today <= enddate);
+            exposition.startdate_number = startdate;
+            
+            if ( (numberOfDaysToStart < 7 && numberOfDaysToStart > 0) || expositionRunning) {
+                currentExpositions.push(exposition);
+            }
+        });
+
+        if (!currentExpositions.length) return;
+
+        gridClass = "grid_" + (12 / currentExpositions.length);
+        currentExpositions.sort((a,b) => (a.startdate_number > b.startdate_number) ? 1 : ((b.startdate_number > a.startdate_number) ? -1 : 0)); 
+        var html = '';
+        currentExpositions.forEach(exposition => {
+            html += '<div class="' + gridClass +' compactImgInfoContainer">';
+            if (exposition.fixed.url) html += '<a href="' + exposition.fixed.url + '" target="_blank">';
+            // html += '<img src="/img/uploads/' + getImageFilename(exposition.avatar.thumbnail) + '" alt="Logo ' + exposition[lang].name + '" class="img-smallest shadow">';
+            html += '<div class="info">';
+            html += '<h4>' + exposition[lang].name + '</h4>';
+            html += formatDate(exposition.fixed.startdate) + ' - ' + formatDate(exposition.fixed.enddate); 
+            if (exposition[lang].city) html += '<br>' + exposition[lang].city;
+            html += '</div>';
+            if (exposition.fixed.url) html += '</a>';
+            html += '</div>';
+        });
+                
+        html += '<br class="clear">'
+        $("#expositionBanner .compact").append(html);
+        $("#expositionBanner").slideDown(750);
+        
+    });
+
+</script>

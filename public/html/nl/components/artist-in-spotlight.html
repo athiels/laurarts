@@ -1,0 +1,36 @@
+<div class="compact" style="padding: 100px 0" >
+    <div id="artist-in-spotlight" class="grid_8 grid_shift_2"></div>
+</div>
+
+
+<script>
+    getData(
+        "/api/artist?random=true&limit=1",
+        function (data) {
+            console.log("artists", data);
+            if (!data.length) return console.log("No artist in the spotlight");
+            var lang = getLocalStorage("language");
+            let artist = data[0];
+            
+            let url = (artist.fixed.custom_url && artist.fixed.custom_url_active == "true") ? artist.fixed.custom_url : "/artist/id/" + artist._id;
+
+            html = '<div class="switching-columns-reversed">';
+            html += '<div class="column">';
+            html += '<div class="text-center">';
+            html += '<img src="/img/uploads/' + getImageFilename(artist.avatar.thumbnail) + '" class="small-img shadow" alt="">';
+            html += '</div>';
+            html += '</div>';
+            html += '<div class="column">';
+            html += '<div class="section-title align-left-lg">' + artist.fixed.name + '</div>';
+            html += '<p>' + artist[lang].short_description;
+            html += '<br><br><a href="'+url+'">Lees meer over ' + artist.fixed.name + '</a>';
+            html += '</p>';
+            // html += ' <a href="/write-review" class="cta" >Schrijf een review over ' + artist.fixed.name + '</a>';
+            html += '</div>'
+            html += '</div>';
+            html += '<br class="clear">';
+
+            $("#artist-in-spotlight").html(html);
+        }
+    );
+</script>

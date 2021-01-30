@@ -1,0 +1,98 @@
+<div id="admin-section"></div>
+
+<script type="text/javascript">
+
+    addActionButton("back", "Terug", "back_special");
+    addActionButton("certificate", "Certificaat");
+    addActionButton("save", "Opslaan");
+    addActionMenu([
+        { id: "remove", label: "Verwijderen" }
+    ]);
+    setMainTitle("Wijzig kunstwerk");
+
+    function main() {
+        getData( "/api/galleryitem?_id="+getUrlParam("id"), galleryitem => { createAdminSection(galleryitem) });
+    }
+    main();
+
+    function createAdminSection(data) {
+        $("#admin-section").empty();
+        var galleryItem = data[0];
+        console.log(galleryItem);
+
+        var html = '<form id="editForm" class="grid_6">';
+        
+        html += adminCreateBigImageUpload("photo", "", "Foto");
+        html += adminCreateInput("text", "name", galleryItem.data.name, "Naam");
+        html += adminCreateInput("text", "width", galleryItem.data.width, "Breedte");
+        html += adminCreateInput("text", "height", galleryItem.data.height, "Hoogte");
+        html += adminCreateInput("text", "price", galleryItem.data.price, "Prijs");
+        html += adminCreateSelect([{value: "true", text: "Ja"}, {value: "false", text: "Nee"}], "show", galleryItem.data.show, "Zichtbaar");
+
+        html += adminCreateInput("hidden", "_id", galleryItem._id);
+        html += adminCreateInput("hidden", "artist_id", galleryItem.artist_id);
+        html += '</form>'; 
+
+        if (galleryItem.photo) html += '<div class="grid_6"><img class="updateImagePreview" src="/img/uploads/' + getImageFilename(galleryItem.photo) + '"/></div>';
+
+        $("#admin-section").html(html);
+    } 
+
+    function save() {
+
+        var savingNotif = addNotification('<i class="fas fa-spinner fa-pulse"></i> Bezig met opslaan...');
+
+        files = $('#photo').prop('files');
+        files = [...files];
+        file = files[0];
+
+        var xhr = new XMLHttpRequest();
+        var formData = new FormData();
+        xhr.open('POST', '/api/galleryitem/update', true);
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        xhr.setRequestHeader('authorization', getLocalStorage("token"));
+
+        xhr.addEventListener('readystatechange', function(e) {
+            if (xhr.readyState == 4 && xhr.status == 200) {
+                removeNotification(savingNotif);
+                addNotification("Succesvol opgeslagen.", "success");
+                main();
+            }
+            else if (xhr.readyState == 4 && xhr.status != 200) {
+                console.log(xhr);
+                var response = JSON.parse(xhr.response);
+                removeNotification(savingNotif);
+                addNotification("Fout bij opslaan: " + response.err, "failed");
+            }
+        });
+
+        formData.append('formdata', JSON.stringify(getFormData("editForm")));
+        formData.append('file', file);
+
+        xhr.send(formData);
+        }
+
+    function remove() {
+        confirm("Verwijderen", "Zeker dat je dit kunstwerk wil verwijderen", function() {
+            var formData = getFormData("editForm");
+            postData( "/api/galleryitem/delete", formData, galleryitem => { 
+                back(["artist_id"]);
+            }, err => { 
+                addNotification("Fout bij verwijderen: " + JSON.stringify(err), "failed");
+            });
+        }) ;
+    }
+
+    function updateProgress(percent) {
+        $("#progressBar").val(percent);
+    }
+
+    function back_special() {
+        back(["artist_id"]);
+    }
+
+    function certificate() {
+        location.href = "/admin/cms/artists/galleryitem/certificate?artist_id=" + getUrlParam("artist_id") + "&id=" + getUrlParam("id");
+    }
+
+</script>

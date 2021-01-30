@@ -1,0 +1,69 @@
+<div class="search">
+    <input type="text" id="input" placeholder="Zoeken..."/> 
+    <div class="button" title="Zoeken"><i class="fas fa-arrow-right"></i></div>
+</div>
+<div class="clear"></div>
+<ul id="admin-table" class="admin-table grid_12"></ul>
+
+<br class="clear">
+
+
+<script type="text/javascript">
+
+    setMainTitle("Presentaties archief");
+
+    var presentations;
+
+    if (user = getUser()) {
+        admin = getUserPermission("admin");
+        
+        let today = new Date();
+        getData( "/api/sales/presentation?enddate=" + today.toISOString(), data => {
+            presentations = data;
+            createAdminSection(data);
+        }, err => { console.log(err); } );
+    }
+
+    function createAdminSection(data) {
+        $("#admin-table").empty();
+        
+        // console.log("presentations", data);
+        setSubTitle( data.length + " items");
+
+        data.forEach(presentation => {           
+            var html = '<li id="'+presentation._id+'" class="grid_12">';
+            html += '<div class="smartphone-hide">';                
+            if (admin == "true") html += '<div class="grid_1">'+presentation.number+'</div>';
+            html += '<div class="grid_2">'+formatDate(presentation.createdAt)+'</div>';
+            html += '<div class="grid_2">'+presentation.customer.data.name+'</div>';
+            html += '<div class="grid_2 ellipsis">'+presentation.customer.data.deliveryaddress.postcode + ' ' + presentation.customer.data.deliveryaddress.city +'</div>';
+            html += '<div class="grid_3">';
+            presentation.data.artworks.forEach(artwork => {
+                html += '<div class="ellipsis" style="margin: 0; padding: 0;">' + artwork.description + '</div>';
+            });
+            html += '</div>';
+            html += '<div class="grid_1">' + formatDate(presentation.data.delivery_date) + '</div>';
+            html += '<br class="clear"></div>';
+            html += '</li>';
+
+            $("#admin-table").append(html);
+        });
+    }
+
+    $(document).on("click", "#admin-table li", function(e) {
+        e.stopPropagation();
+        id = $(this).attr('id');
+        location.href = location.href + "/update?id="+id;
+    });
+
+    $(".search").on("click", ".button", search);
+    $('.search input').keypress(function(event){
+        var keycode = (event.keyCode ? event.keyCode : event.which);
+        if(keycode == '13') search();
+    });
+
+    function search() {
+        var searchString =  $('.search input').val();
+        getData( "/api/sales/presentation?search=" + searchString, data => createAdminSection(data), err => { console.log(err); } );
+    }
+</script>

@@ -1,0 +1,36 @@
+<ul id="admin-table" class="admin-table grid_12"></ul>
+<br class="clear">
+
+<script type="text/javascript">
+
+    addActionButton("create", "Nieuwe URL rewrite");
+
+    getData(   
+        "/api/urlrewrite", 
+        function(data) {
+            console.log(data);
+            setMainTitle("URL rewrites");
+            setSubTitle( data.length + " items");
+
+            data.forEach(urlrewrite => {           
+                var html = '<li id="'+urlrewrite._id+'" class="grid_12">';
+                html += '<div class="grid_6">'+urlrewrite.original_url+'</div>';
+                html += '<div class="grid_6">'+urlrewrite.new_url+'</div>';
+                html += '</li>';
+
+                $("#admin-table").append(html);
+            });
+        }
+    );
+
+    $(document).on("click", "#admin-table li", function(e) {
+        e.stopPropagation();
+        id = $(this).attr('id');
+        location.href = location.href + "/update?id="+id;
+    });
+
+    function create() {
+        location.href = location.href + "/create";
+    }
+
+</script>

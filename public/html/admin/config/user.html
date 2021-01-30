@@ -1,0 +1,41 @@
+<ul id="admin-table" class="admin-table grid_12 sortableList"></ul>
+<br class="clear">
+
+
+<script type="text/javascript">
+
+    addActionButton("create", "Nieuwe gebruiker");
+    setMainTitle("Gebruikers");
+
+    getData(   
+        "/api/admin/user", 
+        function(data) {
+            console.log(data);
+            setSubTitle( data.length + " items");
+
+            data.forEach(user => {           
+                var html = '<li id="'+user._id+'" class="grid_12">';
+                html += '<div class="grid_4">';
+                if (user.fixed && user.fixed.name) html += user.fixed.name;
+                html += '</div>';
+                html += '<div class="grid_4">'+user.username+'</div>';
+                html += '<div class="grid_4">'+user.email+'</div>';
+                html += '</li>';
+
+                $("#admin-table").append(html);
+            });
+            setMainHeight();
+        }
+    );
+
+    $(document).on("click", "#admin-table li", function(e) {
+        e.stopPropagation();
+        id = $(this).attr('id');
+        location.href = location.href + "/update?id="+id;
+    });
+
+    function create() {
+        location.href = location.href + "/create";
+    }
+
+</script>

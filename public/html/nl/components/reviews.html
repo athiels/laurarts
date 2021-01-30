@@ -1,0 +1,85 @@
+<div class="compact">
+    <div class="section-title" style="padding-bottom: 0;" >Reviews</div>
+    <div class="gallery-navigation"></div>
+    <div class="review-gallery"></div>
+    
+    <div class="clear"></div>
+</div>
+
+<script>
+
+    let path = location.pathname;
+    let artist = null;
+    let artistUrlParam = "";
+    if (path.includes("artist")) artist = path.split("/").pop();
+    if (artist) artistUrlParam = "&artist=" + artist;
+    const writeReviewUrl = "/write-review" + (artist ? "?artist=" + artist : "");
+
+    let galleryOptions = {
+        accessibility: false,
+        autoplay: true,
+        autoplaySpeed: 20000,
+        dots: true,
+        draggable: false,
+        appendDots: ".gallery-navigation"
+    }
+
+    getData("/api/review?random=true&limit=true" + artistUrlParam, reviews => {
+        let lang = getLocalStorage("language"); 
+        console.log("reviews", reviews);
+
+        // If on artist page, show only reviews from this artist
+        if (artist) reviews = reviews.filter(review => { return review.fixed.artist.toLowerCase().replace(/ /g, '-') == artist });
+
+        if (!reviews.length) {            
+            let html = '<div class="text-center">Er zijn nog geen reviews over deze kunstenaar.<br><a href="' + writeReviewUrl + '">Wees de eerste om een review te schrijven.</a></div>';
+            return $("#reviews .review-gallery").append(html);
+        }
+
+        $("#reviews").append('<div class="text-center"><a href="' + writeReviewUrl + '" class="cta" >Schrijf zelf een review</a></div>');
+
+        reviews.forEach(review => {
+            let html = '';
+            html += '<div class="review-item">';
+                html += '<div class="grid_12">';
+                    html += '<div class="grid_3"></div>';
+                    html += '<div class="grid_6">';
+                        html += '<div class="title">' + review[lang].title + '</div>';
+                        html += '<div class="subtitle">';
+                            if (review.fixed.rating) html += createRatingHtml(review.fixed.rating);
+                            if (review.fixed.customerName) html += review.fixed.customerName;
+                            if (review.fixed.artist) html += (review.fixed.customerName? ' over ' : 'Over ') + review.fixed.artist;
+                            // html += '<div class="right">' + formatDate(review.createdAt) + '</div><div class="clear"></div>';
+                        html += '</div>';
+            
+                        if (review[lang].reviewText) html += review[lang].reviewText;
+                        
+                        html += '<div class="subtitle">';
+                        html += '<br><div>' + formatDate(review.createdAt) + '</div>';
+                        html += '</div>';
+
+                        // html += '<br><a href="' + writeReviewUrl + '" class="cta" >Schrijf zelf een review.</a>';
+                    html += '</div>';
+                html += '</div>';
+                html += '<div class="clear"></div>';                
+            html += '</div>';            
+
+            $("#reviews .review-gallery").append(html);
+        });
+        
+        $('#reviews .review-gallery').slick(galleryOptions);
+    });
+
+    function createRatingHtml(rateValue)  {
+        var html = '<div class="rating">';
+        for(i=0;i<5;i++) {
+            if (i < rateValue){ 
+                if (i+0.5 == rateValue) html += '<i class="fas fa-star-half-alt"></i>';
+                else html += '<i class="fas fa-star"></i>';
+            } else html += '<i class="far fa-star"></i>';
+        }
+        html += '</div>';
+        return html;
+    }
+
+</script>

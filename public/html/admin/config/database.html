@@ -1,0 +1,27 @@
+<h4>Database</h4>
+<div id="database"></div>
+
+<script>
+    getData("/api/admin/stats", data => {
+        console.log(data);
+        $("#database").html('<i class="fas fa-spinner fa-pulse"></i> Bezig met ophalen...');
+
+        var html  = '<table class="contact_table" >';
+            html += '<tr><td>Status:</td><td>' + (data.ok ? "Online" : "Offline") + '</td></tr>';
+            html += '<tr><td>Naam:</td><td>' + data.db + '</td></tr>';            
+            html += '</table>';
+
+            html += '<progress max="' + data.maxSize + '" value="' + data.storageSize + '"></progress>';
+            html += '<br>' + bytesToSize(data.storageSize) + ' gebruikt van ' + bytesToSize(data.maxSize);
+        $("#database").html(html);
+    }, function(err) {
+        $("#database").html('Error: '+ JSON.stringify(err));
+    });
+
+    function bytesToSize(bytes) {
+        var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+        if (bytes == 0) return '0 Byte';
+        var i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
+        return Math.round(bytes / Math.pow(1024, i), 2) + ' ' + sizes[i];
+    }
+</script>

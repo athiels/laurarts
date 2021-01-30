@@ -1,0 +1,13 @@
+<script type="text/javascript">
+
+    postData(
+        "/api/sales/invoice/create", 
+        { order_id: getUrlParam("order_id") },
+        data => { 
+            if (!data) console.log("No Data");
+            window.location.href = "/admin/sales/invoice/update?id=" + data._id;
+        }, 
+        err => { console.log(err); }
+    );
+
+</script>

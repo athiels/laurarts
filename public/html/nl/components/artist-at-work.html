@@ -1,0 +1,55 @@
+<div class="compact">
+    <div id="artist-at-work" class="grid_8 grid_shift_2"></div>
+</div>
+
+<script>
+    getData("/api/artistatwork", function (data) {
+        // console.log("artistatwork", data);
+
+        let isArtistAtWork = false;
+
+        data.sort((a,b) => (a.fixed.startdate > b.fixed.startdate) ? 1 : ((b.fixed.startdate > a.fixed.startdate) ? -1 : 0));
+
+        let html = '';
+        html += '<div class="switching-columns">';
+        html += '<div class="column">';
+            html += '<div class="text-center">';
+                if (data[0].avatar) html += '<img src="/img/uploads/' + getImageFilename(data[0].avatar.photo) + '" class="small-img shadow" alt="Artist at work">';
+            html += '</div>';
+        html += '</div>';
+        
+        html += '<div class="column">';
+            html += '<div class="section-title align-left-lg">Artiest aan het werk</div>';
+            html += '<p>Benieuwd hoe de kunstwerken tot leven komen? <br>Onze kunstenaars zijn regelmatig aan het werk in ons open atelier!</p>';
+
+            let daysInTheFuture = 14;
+            data.forEach(artistatwork => {
+
+                let startdate = new Date(Date.parse(artistatwork.fixed.startdate));
+                if (new Date(startdate.toDateString()) > new Date(new Date(new Date().getTime() + daysInTheFuture * 24 * 60 * 60 * 1000).toDateString())) return;
+                
+                let enddate = new Date(Date.parse(artistatwork.fixed.enddate));
+                if (new Date(enddate.toDateString()) < new Date(new Date().toDateString())) return;
+
+                isArtistAtWork = true;
+
+                html += '<p style="padding-top: 0; padding-bottom: 0;"><b>' + artistatwork.fixed.artist + '</b> ' + artistatwork.fixed.location + ':</p>';
+                html += '<ul class="list">';
+                    html += '<li>';
+                    if (artistatwork.fixed.startdate == artistatwork.fixed.enddate) {
+                        html += formatDate(artistatwork.fixed.startdate);
+                    } else {
+                        html += formatDate(artistatwork.fixed.startdate) + ' - ' + formatDate(artistatwork.fixed.enddate);
+                    }
+                    html += '</li>';
+                html += '</ul><br>';
+            });
+
+        html += '</div>';
+        html += '</div>';
+        
+        if (isArtistAtWork) $("#artist-at-work").html(html);
+
+    });
+
+</script>

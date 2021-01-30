@@ -1,0 +1,140 @@
+<div id="admin-section" class="smallFont" >
+    <img src="/img/logo_320px.png" style="margin-bottom: 30px;"/>
+    <br>
+    <div id="customerData" style="display: inline-block; width: 300px; vertical-align: top;"></div>
+
+    <div  class="right" style="width: 250px;">      
+        <h5>Galerij Thiels</h5>
+        Hoek Visserstraat - Bakkerstraat<br>
+        8370 Blankenberge<br>
+        België<br><br>
+
+        BTW nr.: BE0629.415.974<br>
+        Rek nr.: BE85 3770 5002 9506<br><br>
+
+        info@galerijthiels.be<br>
+        www.galerijthiels.be
+    </div>
+    <br class="clear"><br><br>
+    
+    
+    <h3>Factuur <span id="invoice_id"></span> <span id="invoice_date" class="right"></span></h3>
+    <br><br>
+
+    <table id="overview" width="100%" style="width: 100%" >
+        <col width="40%">
+        <col width="20%">
+        <col width="20%">
+        <col width="20%">
+        <thead>
+            <th>Beschrijving</th>
+            <th>Eenheidsprijs</th>
+            <th>BTW</th>
+            <th>Totaal</th>
+        </thead>
+        <tbody></tbody>
+        <tfoot></tfoot>
+    </table>
+    
+    <div style="margin-top: 100px"></div>
+</div>
+    
+<script type="text/javascript">
+
+    //addActionButton("back", "Terug");
+    addActionButton("downloadAsPdf", "Download");
+    addActionButton("print", "Print");    
+
+    var invoice;
+
+    function main() {
+        getData("/api/sales/invoice?_id="+getUrlParam("id"), data => createAdminSection(data), err => { console.log(err); });
+    }
+    main();
+
+
+    function createAdminSection(data) {
+        invoice = data[0];
+        console.log(invoice);
+
+        $("#invoice_id").html(invoice.number);
+        $("#invoice_date").html(formatDate(invoice.createdAt));
+
+        var order = invoice.order;
+
+        var customer = order.customer;
+        var html = '';
+        
+        var invoiceAddress = customer.data.invoiceaddress;
+        if (invoiceAddress.same_as_delivery) invoiceAddress = customer.data.deliveryaddress;
+ 
+        var invoiceAddressHtml = '';        
+        if (invoiceAddress.company) invoiceAddressHtml += "<h5>" + invoiceAddress.company + "</h5>";
+        if (!invoiceAddress.company && customer.data.name) html += customer.data.name + "<br>";
+        if (invoiceAddress.street) invoiceAddressHtml += invoiceAddress.street + " ";
+        if (invoiceAddress.house_number) invoiceAddressHtml += invoiceAddress.house_number + "<br>";
+        if (invoiceAddress.postcode) invoiceAddressHtml += invoiceAddress.postcode + " ";
+        if (invoiceAddress.city) invoiceAddressHtml += invoiceAddress.city + "<br>";
+        if (customer.data.invoiceaddress.country_code) invoiceAddressHtml += getCountryName(customer.data.deliveryaddress.country_code) + "<br>";
+        if (invoiceAddress.vat_number) invoiceAddressHtml += invoiceAddress.vat_number + "<br>";
+        if (invoiceAddressHtml) html += invoiceAddressHtml;
+
+        $("#customerData").html(html);
+        
+        order.data.artworks.forEach( (artwork, index) => {
+            html = '<tr>';
+            html += '<td>';
+            if (artwork.artist) html += artwork.artist + '<br>';
+            if (artwork.description) html += artwork.description + ' - ';
+            if (artwork.dimensions) html += artwork.dimensions;
+            html += '</td>';
+
+            if (artwork.price) {
+                var priceInclVat = artwork.price;
+                var vat = (priceInclVat * 0.21);
+                var priceExclVat = priceInclVat - vat;
+
+                html += '<td>' + formatPrice(priceExclVat) + '</td>';
+                html += '<td>' + formatPrice(vat) + '</td>';
+                html += '<td>' + formatPrice(priceInclVat) + '</td>';
+            }
+
+            html += '</tr>';
+            $("#overview tbody").append(html);
+        });
+
+        var totalPriceInclVat = order.data.total_price;
+        var totalVat = (totalPriceInclVat * 0.21);
+        var totalPriceExclVat = totalPriceInclVat - totalVat;
+
+        html = '<tr><td></td><td></td><td><strong>Subtotaal:</strong></td>';
+        html += '<td><strong>' + formatPrice(totalPriceExclVat) + '</strong></td>';
+        html += '</tr>';
+        html += '<tr><td></td><td></td><td>21% BTW:</td>';
+        html += '<td>' + formatPrice(totalVat) + '</td>';
+        html += '</tr>';
+        html += '<tr><td></td><td></td><td><strong>Totaal:</strong></td>';
+        html += '<td><strong>' + formatPrice(totalPriceInclVat) + '</strong></td>';
+        html += '</tr>';
+
+        $("#overview tfoot").append(html);
+    }
+
+    function print() {
+        $('#admin-section').printThis();
+    }
+
+    function downloadAsPdf() {
+        element = document.getElementById("admin-section");
+        let options = {
+            margin: 10,
+            filename: 'Galerij Thiels - Factuur ' + invoice.number + '.pdf',
+            image: { type: 'jpeg', quality: 1 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        html2pdf().set(options).from(element).save();
+    }
+    
+</script>

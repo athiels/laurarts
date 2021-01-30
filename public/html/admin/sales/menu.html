@@ -1,0 +1,43 @@
+<a href="/admin/sales/customer"><h4>KLANTEN</h4></li>
+
+<a href="/admin/sales/order"><h4>ORDERS</h4></a>
+<ul>
+    <li><a href="/admin/sales/order/selectcustomer">Nieuw</a></li>
+    <li><a href="/admin/sales/archive" id="archive-menu" style="display: none;">Archief</a></li>
+</ul>
+
+<a href="/admin/sales/presentation"><h4>PRESENTATIES</h4></a>
+<ul>
+    <li><a href="/admin/sales/presentation/selectcustomer">Nieuw</a></li>
+    <!-- <li><a href="/admin/sales/presentation/archive" id="presentation-archive-menu" style="display: none;">Archief</a></li> -->
+    <li><a href="/admin/sales/presentation/archive">Archief</a></li>
+</ul>
+
+<a href="/admin/sales/invoice"><h4>FACTURATIE</h4></a>
+<ul>
+    <li><a href="/admin/sales/order/selectorder">Nieuw</a></li>
+</ul>
+
+<a href="/admin/sales/delivery/overview"><h4>LEVERINGEN</h4></a>
+<a href="/admin/sales/calendar"><h4>KALENDER</h4></a>
+<a href="/admin/sales/task"><h4>TAKEN</h4></a>
+<ul>
+    <li><a href="/admin/sales/task/create">Nieuw</a></li>
+</ul>
+
+<script>
+
+    $(document).ready(function () {
+        $("#menuName").html(getAdminSection());
+
+        let currentPage = window.location.pathname.split("/")[3];
+        $('#main_menu a[href*="' + currentPage + '"]').addClass("navbar-active");
+
+        if (user = getUser()) {
+            let admin = getUserPermission("admin");
+            if (admin == "true") $("#archive-menu").show();
+            // if (admin == "true") $("#presentation-archive-menu").show();
+        }
+    });
+
+</script>

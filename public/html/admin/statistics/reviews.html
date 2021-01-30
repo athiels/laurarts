@@ -1,0 +1,81 @@
+<div id="chart-container"></div>
+
+<script type="text/javascript">
+
+    FusionCharts.ready(function () {
+        getData("/api/review", reviews => {
+            reviewsWithRating = reviews.filter(review => { return review.fixed.rating; });
+            reviewsWithoutRating = reviews.filter(review => { return !review.fixed.rating; });
+
+            // Reviews with / witout rating
+            let reviewsData = Array();
+            reviewsData.push({
+                label: "Met rating",
+                value: reviewsWithRating.length,
+            });
+            reviewsData.push({
+                label: "Zonder rating",
+                value: reviewsWithoutRating.length,
+            });
+            console.log(reviewsData);
+
+            $("#chart-container").append('<div id="reviews-chart" class="grid_4"></div>');
+            FusionCharts.ready(function () {
+                var chartObj = new FusionCharts({
+                    type: 'doughnut2d',
+                    renderAt: 'reviews-chart',
+                    width: '600',
+                    height: '400',
+                    dataFormat: 'json',
+                    dataSource: {
+                        "chart": {
+                            "caption": "Reviews",
+                            "subCaption": reviews.length + " reviews",
+                            "showTooltip": "1",
+                            "theme": "fusion"
+                        },
+                        "data": reviewsData,
+                    }
+                });
+                chartObj.render();
+            }, err => { console.log(err); });
+
+
+
+
+
+            // Review rating
+            reviewsWithRating.forEach(reviewWithRating => { reviewWithRating.rating = reviewWithRating.fixed.rating });
+            reviewsWithRatingGroupedByRating = groupBy(reviewsWithRating, "rating");
+            data = Array();
+            reviewsWithRatingGroupedByRating.forEach(reviewsPerRating => {
+                data.push({
+                    label: reviewsPerRating[0].rating.toString(),
+                    value: reviewsPerRating.length,
+                });
+            });
+
+            $("#chart-container").append('<div id="reviews-rating-chart" class="grid_4  "></div>');
+            FusionCharts.ready(function () {
+                var chartObj = new FusionCharts({
+                    type: 'doughnut2d',
+                    renderAt: 'reviews-rating-chart',
+                    width: '600',
+                    height: '400',
+                    dataFormat: 'json',
+                    dataSource: {
+                        "chart": {
+                            "caption": "Review rating",
+                            "subCaption": reviewsWithRating.length + " reviews",
+                            "showTooltip": "1",
+                            "theme": "fusion"
+                        },
+                        "data": data,
+                    }
+                });
+                chartObj.render();
+            }, err => { console.log(err); });
+        });
+    });
+
+</script>

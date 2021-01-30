@@ -1,0 +1,61 @@
+<div class="compact">
+    <h1>Nieuwsbrief afmelden</h1>
+    <p class="text-center">
+        We vinden het jammer dat u gaat.
+    </p>
+    <div id="unsubscribeDiv" class="grid_6 grid_shift_3">
+        <div class="text-center vertical-padding-sm">
+            <form id="newsletterUnsubscribeForm">
+                <input type="email" id="newsletterUnsubsribeEmail" style="width: 400px; margin: 0 auto" placeholder="* Uw e-mail adres" required>                
+            </form>
+            <br>
+            <div class="errorMessage"></div>
+            <button id="newsletterUnsubscribeButton">Uitschrijven</button>
+        </div>
+    </div>
+    <div class="clear"></div>
+    <p class="text-center">
+        <span class="feedback"></span>
+    </p>    
+</div>
+
+<script>
+
+    setDocumentTitle("Niewsbrief uitschrijven");
+
+    const email = getUrlParam("email");
+    if (email) {
+        unsubscribeToNewsletter(email);
+        $("#unsubscribeDiv").hide();
+    } 
+
+    function unsubscribeToNewsletter(email) {
+        $(".feedback").html('<i class="fas fa-spinner fa-pulse"></i> We verwijderen uw e-mail adres ('+email+') van onze nieuwsbrief.');
+        postData("/api/newsletter/unsubscribe", {email: email}, 
+            data => {
+                $(".feedback").html('<i class="fas fa-check"></i> Uw e-mail adres ( ' + email + ' ) werd succesvol verwijderd van onze nieuwsbrief.');
+            },
+            error => {
+                $(".feedback").html('<i class="fas fa-times"></i> Uw e-mail adres ( ' + email + ' ) kon niet verwijderd worden van onze nieuwsbrief. Gelieve contact met ons op te nemen.');
+            }
+        );
+    }
+
+    $("#newsletterUnsubscribeButton").click(unsubscribe);
+
+    $('#newsletterUnsubsribeEmail').keypress(function(event){
+        var keycode = (event.keyCode ? event.keyCode : event.which);
+        if (keycode == '13') {
+            event.preventDefault();
+            unsubscribe();
+        }
+    });
+
+    function unsubscribe() {
+        if (!validateForm("newsletterUnsubscribeForm")) return $(".errorMessage").text("Gelieve uw e-mail adres op te geven .")
+        const email = $("#newsletterUnsubsribeEmail").val();
+        location.href = '/newsletter/unsubscribe?email=' + email;
+    }
+
+
+</script>

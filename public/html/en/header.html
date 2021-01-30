@@ -1,0 +1,36 @@
+<nav class="compact">
+    <div class="nav-section nav-section-brand">
+        <a class="navbar-brand" href="/home"><img src="/img/logo.png"/></a>
+    </div>
+
+    <div class="nav-section nav-section-nav" >
+        <ul class="nav-list languagebar">
+            <li><a href="#" id="nl" onclick="changeLanguage(this.id)">NL</a></li>
+            <li><a href="#" id="fr" onclick="changeLanguage(this.id)">FR</a></li>
+            <li><a href="#" id="en" onclick="changeLanguage(this.id)">EN</a></li>
+        </ul>
+
+        <ul class="navbar nav-list smartphone-hide">
+            <li><a href="/artists">Artists</a></li>
+            <li><a href="/gallery">Gallery</a></li>
+            <li><a href="/openinghours">Opening hours</a></li>
+            <li><a href="/expositions">Expositions</a></li>
+            <li><a href="/contact">Contact</a></li>
+        </ul>
+    </div>
+</nav>
+
+
+
+<script>
+    $(document).ready(function() {
+        var lang = getLocalStorage("language");
+        $("#"+lang).addClass("languagebar-active");
+    });
+
+    function changeLanguage(lang) {
+        setLocalStorage("language", lang);
+        window.location.reload();
+    }
+</script>
+               

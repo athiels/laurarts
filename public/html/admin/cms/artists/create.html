@@ -1,0 +1,74 @@
+<div id="admin-section"></div>
+    
+<script type="text/javascript">
+
+    addActionButton("back", "Terug");
+    addActionButton("save", "Opslaan");
+    setMainTitle("Nieuwe kunstenaar");
+
+    function createAdminSection() {
+        var html = '<div class="grid_6">';
+                
+        html += '<h5>Vaste gegevens</h5>';
+        html += '<form id="fixedData">';
+        html += adminCreateBigImageUpload("photo", "", "Foto");
+        html += adminCreateInput("text", "name", "", "Naam");
+        //html += adminCreateSelect([{value: 'male', text: "Man"}, {value: 'female', text: "Vrouw"}], "sex", "", "Geslacht");        
+        html += adminCreateSelect([{value: "true", text: "Ja"}, {value: "false", text: "Nee"}], "show", "", "Zichtbaar");
+        html += adminCreateTextarea("meta_description", "", "Meta beschrijving", 160);
+
+        html += '</form><br><br>';
+
+        html += '<h5>Taal afhankelijke gegevens</h5>';
+        html += '<form id="languageData">';
+        html += adminCreateTextarea("short_description", "", "Intro");
+        html += adminCreateTextarea("biography", "", "Biografie");
+        html += '</form></div>';
+
+        $("#admin-section").html(html);
+    } 
+    createAdminSection();
+
+    function save() {
+
+        var savingNotif = addNotification('<i class="fas fa-spinner fa-pulse"></i> Bezig met opslaan...');
+
+        files = $('#photo').prop('files');
+        files = [...files];
+        file = files[0];
+        
+        var fixedData = getFormData("fixedData", err => {
+            removeNotification(savingNotif);
+            return addNotification("Fout bij opslaan: " + err, "failed");
+        });
+        var languageData = getFormData("languageData", err => {
+            removeNotification(savingNotif);
+            return addNotification("Fout bij opslaan: " + err, "failed");
+        });
+
+        var formData = new FormData();
+        formData.append('lang', "nl");
+        formData.append('fixedData', JSON.stringify(fixedData));
+        formData.append('languageData', JSON.stringify(languageData));
+        formData.append('file', file);
+
+        var xhr = new XMLHttpRequest();        
+        xhr.open('POST', '/api/artist/create', true);
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        xhr.setRequestHeader('authorization', getLocalStorage("token"));
+
+        xhr.addEventListener('readystatechange', function(e) {
+            if (xhr.readyState == 4 && xhr.status == 200) {
+                removeNotification(savingNotif);
+                back();
+            }
+            else if (xhr.readyState == 4 && xhr.status != 200) {
+                removeNotification(savingNotif);
+                var response = JSON.parse(xhr.response);
+                addNotification("Fout bij opslaan: " + response.err, "failed");
+            }
+        });        
+        xhr.send(formData);
+    }
+
+</script>

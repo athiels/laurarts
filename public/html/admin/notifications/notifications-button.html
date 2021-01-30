@@ -1,0 +1,21 @@
+<a href="/admin/notifications/notifications">
+    <div class="notifications-button">
+        <i class="fas fa-bell"></i> <span></span>
+    </div>
+</a>
+
+
+<script>
+    function checkNotifications() {
+        getData("/api/notification?acknowledged=false", data => {
+            if (data.length) {
+                $(".notifications-button").addClass("active");
+                $(".notifications-button span").text(data.length);
+            } else {
+                $(".notifications-button").removeClass("active");
+                $(".notifications-button span").text("");
+            }
+         }, err => { addNotification("Fout bij het ophalen van data: " + err, "failed"); });
+    }
+    checkNotifications();
+</script>

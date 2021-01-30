@@ -1,0 +1,165 @@
+<div id='calendar'></div>
+
+<script>
+
+var calendar, calendarEl;
+var calendarConfig = {
+    initialDate: new Date().toISOString(),
+    initialView: 'timeGridWeek',
+    headerToolbar: {
+        left: 'prev,next today',
+        center: 'title',
+        right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+    },
+    initialView: 'listWeek',
+    height: '85vh',
+    expandRows: true,
+    slotMinTime: '09:00',
+    slotMaxTime: '22:00',
+    navLinks: true,
+    editable: false,
+    selectable: true,
+    selectMirror: true,
+    nowIndicator: true,
+    allDaySlot: true,
+    displayEventTime: false,
+    titleFormat: { month: 'long', year: 'numeric', day: '2-digit', },
+    slotLabelFormat: { hour: '2-digit', meridiem: false },        
+    dayHeaderFormat: { weekday: 'short', month: '2-digit', day: '2-digit', omitCommas: true },
+    locale: 'nl',
+    events: Array(),
+    viewDidMount: addLegend
+}
+
+$(document).ready(function() {
+    calendarEl = document.getElementById('calendar');    
+    addTasks();
+    addOrdersAndPresentations(renderCalendar);
+});
+
+function renderCalendar() {
+    calendar = new FullCalendar.Calendar(calendarEl, calendarConfig);
+    calendar.render();
+}
+
+function addLegend() {
+    let html = '<p class="text-center no-padding">';
+    html += '<i class="fas fa-circle" style="color: #daa520"></i> Orders';
+    html += '<i class="fas fa-circle" style="color: #2C3E50"></i> Presentaties';
+    html += '<i class="fas fa-circle" style="color: #DA4820"></i> Taken';
+    html += '</p>';
+    $(".fc-toolbar-title").siblings("p").remove();
+    $(".fc-toolbar-title").after(html);
+}
+
+function addOrdersAndPresentations(cb) {
+    getData( "/api/sales/order?current=true", orders => {
+        getData( "/api/sales/presentation", presentations => {
+            createCalendarEvents(orders, presentations);
+            if (cb) cb();
+        }, err => { console.log(err); } );
+    }, err => { console.log(err); } );
+}
+
+function createCalendarEvents(orders, presentations) {
+    orders = orders.filter(item => { return item.data.delivery_method == "delivery_internal" });
+    orders.forEach(order => { order.type = 'order'; });
+    presentations.forEach(presentation => { presentation.type = 'presentation'; });
+
+    let deliveryList = orders.concat(presentations);
+
+    let specificDeliveryList = deliveryList.filter(delivery => { return delivery.data.delivery_method_timing == "delivery_method_specific" });
+    let aroundDeliveryList = deliveryList.filter(delivery => { return delivery.data.delivery_method_timing == "delivery_method_around" });
+    let callAroundDeliveryList = deliveryList.filter(delivery => { return delivery.data.delivery_method_timing == "delivery_method_contact_around" });
+
+    // console.log("specificDeliveryList", specificDeliveryList);
+    specificDeliveryList.forEach(delivery => {
+        if (!delivery.data.delivery_time) return;
+        if (delivery.data.deliverydate) delivery.data.delivery_date = delivery.data.deliverydate; // TODO remove when cleared database
+        let deliveryDate = new Date(Date.parse(delivery.data.delivery_date));
+        deliveryDate.setHours(parseInt(delivery.data.delivery_time.split(":")[0]));
+        deliveryDate.setMinutes(parseInt(delivery.data.delivery_time.split(":")[1]));
+
+        let event = {
+            title: delivery.customer.data.name + " (" + delivery.customer.data.deliveryaddress.city + ")",
+            start: deliveryDate.toISOString(),
+            end: addMinutes(deliveryDate, 30).toISOString(),
+        }
+        if (delivery.type == 'order') {
+            event.url = '/admin/sales/order/receipt?order_id=' + delivery._id;
+            event.color = '#daa520';
+        } else if (delivery.type == 'presentation') {
+            event.url = '/admin/sales/presentation/receipt?presentation_id=' + delivery._id;
+            event.color = '#2C3E50';
+        }
+        calendarConfig.events.push(event);
+    });
+
+    // console.log("aroundDeliveryList", aroundDeliveryList);
+    aroundDeliveryList.forEach(delivery => {
+        if (delivery.data.deliverydate) delivery.data.delivery_date = delivery.data.deliverydate; // TODO remove when cleared database
+        let deliveryDate = new Date(Date.parse(delivery.data.delivery_date));
+        deliveryDate.setDate(deliveryDate.getDate() - 14);
+
+        let event = {
+            title: 'Inplannen | ' + delivery.customer.data.name + " (" + delivery.customer.data.deliveryaddress.city + ")",
+            start: deliveryDate.toISOString().split("T")[0],
+        }
+        if (delivery.type == 'order') {
+            event.url = '/admin/sales/order/receipt?order_id=' + delivery._id;
+            event.color = '#daa520';
+        } else if (delivery.type == 'presentation') {
+            event.url = '/admin/sales/presentation/receipt?presentation_id=' + delivery._id;
+            event.color = '#2C3E50';
+        }
+        calendarConfig.events.push(event);
+    });
+
+    // console.log("callAroundDeliveryList", callAroundDeliveryList);
+    callAroundDeliveryList.forEach(delivery => {
+        if (delivery.data.deliverydate) delivery.data.delivery_date = delivery.data.deliverydate; // TODO remove when cleared database
+        let deliveryDate = new Date(Date.parse(delivery.data.delivery_date));
+
+        let event = {
+            title: 'Bellen | ' + delivery.customer.data.name + " (" + delivery.customer.data.deliveryaddress.city + ")",
+            start: deliveryDate.toISOString().split("T")[0],
+        }
+        if (delivery.type == 'order') {
+            event.url = '/admin/sales/order/receipt?order_id=' + delivery._id;
+            event.color = '#daa520';
+        } else if (delivery.type == 'presentation') {
+            event.url = '/admin/sales/presentation/receipt?presentation_id=' + delivery._id;
+            event.color = '#2C3E50';
+        }
+        calendarConfig.events.push(event);
+    });    
+}
+
+function addTasks(cb) {
+    getData( "/api/sales/task", tasks => {
+        // console.log("tasks", tasks);
+        tasks.forEach(task => {
+            if (!task.data.reminder_date) return;
+            let reminderDate = new Date(Date.parse(task.data.reminder_date));
+
+            let event = {
+                title: task.data.title,
+                start: reminderDate.toISOString().split("T")[0],
+                url: '/admin/sales/task/update?id=' + task._id,
+                color: '#DA4820'
+            }
+            console.log(event);
+            calendarConfig.events.push(event);
+        });
+
+        if (cb) cb();
+
+    }, err => { console.log(err); } );
+}
+
+
+function addMinutes(date, minutes) {
+    return new Date(date.getTime() + minutes*60000);
+}
+
+</script>

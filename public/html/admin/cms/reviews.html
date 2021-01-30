@@ -1,0 +1,51 @@
+<ul id="admin-table" class="admin-table grid_12"></ul>
+<br class="clear">
+
+
+<script type="text/javascript">
+
+    addActionSelect("changeLang", [{ value: "nl", text: "Nederlands" }, { value: "fr", text: "Frans" }, { value: "en", text: "Engels" }]);
+    addActionButton("create", "Nieuwe review");
+
+    function main() {
+        getData("/api/review", data => { createAdminSection(data) }, err => { addNotification("Fout bij het ophalen van data: " + err, "failed"); });
+    }
+    main();
+
+    function createAdminSection(data) {
+        console.log(data);
+        setMainTitle("Reviews");
+        setSubTitle(data.length + " items");
+
+        $("#admin-table").empty();
+        var lang = getAdminLang();
+        data.forEach(review => {
+            var html = '<li id="' + review._id + '" class="grid_12 ' + (review.fixed.reviewed == "true" ? '' : 'unacknowledged') + '">';
+            html += '<div class="grid_2 ellipsis">' + formatDateTime(review.createdAt) + '</div>';
+            html += '<div class="grid_1"><i class="fas fa-star"></i> ' + review.fixed.rating + '</div>';
+            html += '<div class="grid_6 ellipsis"><strong>' + getAtt(review, lang, "title") + '</strong></div>';
+            // html += '<div class="grid_5 ellipsis">' + getAtt(review, lang, "reviewText").replace(/<br \/>/g, "") + '</div>';
+            html += '<div class="grid_2 ellipsis">' + review.fixed.artist + '</div>';
+            html += '<div class="grid_1 text-center">' + (review.fixed.accepted == "true" ? '<i class="fas fa-check"></i>' : '<i class="fas fa-times"></i>') + '</div>';
+
+            html += '</li>';
+
+            $("#admin-table").append(html);
+        });
+        setMainHeight();
+    }
+
+    $(document).on("click", "#admin-table li", function () {
+        id = $(this).attr('id');
+        location.href = location.href + "/update?id=" + id;
+    });
+
+    function create() {
+        location.href = location.href + "/create";
+    }
+
+    function changeLang() {
+        main();
+    }
+
+</script>

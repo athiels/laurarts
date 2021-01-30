@@ -1,0 +1,225 @@
+<div id="admin-section">
+    <div id="customer" class="grid_10"></div>
+    <br class="clear"><br><br>
+    <div id="presentation" class="grid_10"></div>
+</div>
+    
+<script type="text/javascript">
+
+    addActionButton("back", "Terug");
+    addActionButton("save", "Opslaan");
+    setMainTitle("Nieuwe presentatie");
+
+    // CREATE HTML FOR CUSTOMER INFO
+
+    function main() {
+        showCustomerInfo();
+        getUsers(function() {
+            getExpositions(function() {
+                createAdminSection();
+            });
+        });
+    }
+    main();
+    
+    function showCustomerInfo() {
+        let customerId = getUrlParam("customer_id");
+        if (!customerId) return $.alert("Klant niet gevonden.");
+
+        getData("/api/sales/customer?_id=" + customerId, 
+            customers => { fillCustomerInfo(customers.docs[0]) },
+            err => { $.alert("Klant kan niet opgehaald worden."); }
+        );
+    }
+
+    function fillCustomerInfo(customer) {
+        // console.log("customer", customer);
+
+        var html = '';
+        html += '<h5>Klantgegevens</h5>';
+        html += '<a href="/admin/sales/customer/update?_id='+customer._id+'&closeonsave=true" target="_blank"><i class="far fa-edit"></i> Wijzigen</a>';
+        if (customer.data.name) html += adminCreateInfo("Naam", customer.data.name);
+        if (customer.data.email) html += adminCreateInfo("Email", customer.data.email);
+        if (customer.data.phone) html += adminCreateInfo("Telefoon", customer.data.phone);
+        if (customer.data.mobile) html += adminCreateInfo("GSM", customer.data.mobile);
+        if (customer.data.info) html += adminCreateInfo("Extra info", customer.data.info);
+        
+        html += '<br>';
+        var deliveryAddressHtml = '';
+        if (customer.data.deliveryaddress.street) deliveryAddressHtml += customer.data.deliveryaddress.street + " ";
+        if (customer.data.deliveryaddress.house_number) deliveryAddressHtml += customer.data.deliveryaddress.house_number + "<br>";
+        if (customer.data.deliveryaddress.postcode) deliveryAddressHtml += customer.data.deliveryaddress.postcode + " ";
+        if (customer.data.deliveryaddress.city) deliveryAddressHtml += customer.data.deliveryaddress.city + "<br>";
+        if (customer.data.deliveryaddress.country_code) deliveryAddressHtml += getCountryName(customer.data.deliveryaddress.country_code) + "<br>";
+        if (customer.data.deliveryaddress.info) deliveryAddressHtml += customer.data.deliveryaddress.info + "<br>";
+        if (deliveryAddressHtml) html += adminCreateInfo("Leveringsadres", deliveryAddressHtml);
+
+        html += '<br>';
+        var invoiceAddressHtml = '';
+        if (customer.data.invoiceaddress.same_as_delivery) invoiceAddressHtml += "Hetzelde als leveringsadres";
+        else {
+            if (customer.data.invoiceaddress.company) invoiceAddressHtml += customer.data.invoiceaddress.company + "<br>";            
+            if (customer.data.invoiceaddress.street) invoiceAddressHtml += customer.data.invoiceaddress.street + " ";
+            if (customer.data.invoiceaddress.house_number) invoiceAddressHtml += customer.data.invoiceaddress.house_number + "<br>";
+            if (customer.data.invoiceaddress.postcode) invoiceAddressHtml += customer.data.invoiceaddress.postcode + " ";
+            if (customer.data.invoiceaddress.city) invoiceAddressHtml += customer.data.invoiceaddress.city + "<br>";
+            if (customer.data.invoiceaddress.country_code) invoiceAddressHtml += getCountryName(customer.data.deliveryaddress.country_code) + "<br>";
+            if (customer.data.invoiceaddress.vat_number) invoiceAddressHtml += customer.data.invoiceaddress.vat_number + "<br>";
+            if (customer.data.invoiceaddress.info) invoiceAddressHtml += customer.data.invoiceaddress.info + "<br>";
+        }
+        if (invoiceAddressHtml) html += adminCreateInfo("Factuuradres", invoiceAddressHtml);
+
+        $("#admin-section #customer").html(html);
+    }
+
+    var usersSelectArray = Array();
+    // CREATE HTML FOR ARTIST SELECT
+    function getUsers(cb) {
+        getData("/api/admin/user", 
+            users => {                
+                users.forEach(user => {
+                    if (user.fixed.active == "true");
+                    usersSelectArray.push({value: user._id, text: user.fixed.name});
+                });
+                if (cb) cb();
+            },
+            err => { console.log(err); }
+        );
+    }
+
+    var salesPlaces = Array();
+    // CREATE HTML FOR ARTIST SELECT
+    function getExpositions(cb) {        
+        getData("/api/exposition", 
+            expositions => {
+                // console.log("expositions", expositions);
+                expositions.forEach(exposition => {
+                    if (exposition.fixed.show == "false") return;
+                    let startdate = Date.parse(exposition.fixed.startdate);
+                    let enddate = new Date(exposition.fixed.enddate); 
+                    enddate.setDate(enddate.getDate() + 10);
+                    enddate = Date.parse(enddate);
+                    let today = Date.now();
+                    let expositionRunning = (startdate <= today && today <= enddate);                   
+                    if (expositionRunning) salesPlaces.push({value: exposition.nl.name, text: exposition.nl.name});
+                });
+                if (cb) cb();
+            },
+            err => { console.log(err); }
+        );
+
+        salesPlaces.push({value: "Galerij Antwerpen", text: "Galerij Antwerpen"});
+        salesPlaces.push({value: "Galerij Blankenberge", text: "Galerij Blankenberge"});
+    }
+
+    function createAdminSection() {
+        var html = '';
+
+        html += '<div id="artworkSections"></div>';
+        
+        html += '<h5>Presentatiegegevens</h5>';
+        html += '<form id="formdata">';
+        html += adminCreateSelect([
+                {value: "deliveryList_method_specific", text: "Specifieke datum"},
+                {value: "deliveryList_method_around", text: "Rond"},                                
+                {value: "deliveryList_method_contact_around", text: "Telefonisch verder af te spreken rond"},
+            ], "deliveryList_method_timing", "", "Timing");
+        html += adminCreateInput("date", "deliveryList_date", "", "Datum");
+        html += adminCreateInput("time", "deliveryList_time", "", "Tijd");
+        html += adminCreateTextarea("info", "", "Extra info");
+
+        html += "<br><br>";
+        html += '<h5>Interne info</h5>';
+        
+        var loggedInUser = getUser();
+        html += adminCreateSelect(usersSelectArray, "sales", loggedInUser._id, "Verkoper");
+        html += adminCreateSelect(salesPlaces, "sales_place", "", "Plaats");
+        html += adminCreateTextarea("internal_info", "", "Interne info");
+        html += "</form><br><br>";
+
+        $("#admin-section #presentation").html(html);
+
+        $("#admin-section #presentation #info").addClass("small");
+        $("#admin-section #presentation #internal_info").addClass("small");
+
+        // $("#total_price_info, #saldo_info, #advance").addClass("price");
+
+        createArtworkSection();
+    }
+
+    function createArtworkSection() {
+        var i = $("#artworkSections section").length;
+        var html = '<section data-artworkindex="' + i + '">';
+        html += '<h5>Kunstwerk(en)</h5>';
+        html += '<form id="artwork_form_' + i + '">';
+        html += adminCreateBigImageUpload("photo", "", "Foto");
+        html += adminCreateTextarea("description", "", "Beschrijving");
+        
+        html += '</form></section>';
+        $("#artworkSections").append(html);
+
+    }
+
+    function removeArtwork(index) {
+        $("section[data-artworkindex=" + index + "]").remove();
+        updatePrices();
+    }
+
+    function save() {
+
+        var savingNotif = addNotification('<i class="fas fa-spinner fa-pulse"></i> Bezig met opslaan...');
+
+        var formData = new FormData();
+
+        var data = getFormData("formdata", err => {
+            removeNotification(savingNotif);
+            return addNotification("Fout bij opslaan: " + err, "failed");
+        });
+        if (!data) return;       
+    
+        artworks = Array();
+        $("#artworkSections section").each(function() {
+            var artworkindex = $(this).data("artworkindex");
+            var artworkSectionId = "artwork_form_" + artworkindex;
+            var artworkData = getFormData(artworkSectionId, err => {
+                removeNotification(savingNotif);
+                return addNotification("Fout bij opslaan: " + err, "failed");
+            });
+            artworks.push(artworkData);
+            files = $('#'+artworkSectionId + ' #photo').prop('files');
+            files = [...files];
+            file = files[0];
+            formData.append('file_' + artworkindex, file);
+        });
+        data.artworks = artworks;
+        formData.append('customer_id', getUrlParam("customer_id"));
+        formData.append('formdata', JSON.stringify(data));
+
+        var xhr = new XMLHttpRequest();        
+        xhr.open('POST', '/api/sales/presentation/create', true);
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        xhr.setRequestHeader('authorization', getLocalStorage("token"));
+
+        xhr.addEventListener('readystatechange', function(e) {
+            if (xhr.readyState == 4 && xhr.status == 200) {
+                removeNotification(savingNotif);
+                var response = JSON.parse(xhr.response);
+                // console.log(xhr);
+                window.location.href = "/admin/sales/presentation/receipt?presentation_id=" + response._id;
+            }
+            else if (xhr.readyState == 4 && xhr.status != 200) {
+                removeNotification(savingNotif);
+                var response = JSON.parse(xhr.response);
+                addNotification("Fout bij opslaan: " + response.err, "failed");
+            }
+        });        
+        xhr.send(formData);
+    }
+
+    // Auto update customer on window focus
+    $(window).on('focus', function() {
+        showCustomerInfo();
+        // console.log("Customer was updated");
+    });
+   
+</script>

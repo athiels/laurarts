@@ -1,0 +1,79 @@
+<div class="compact">
+    <h1 class="artistName"></h1>
+    <div class="grid_8 grid_shift_2">
+        <p id="short_description" class=" intro" style="display: none;"></p>
+        <p id="biography" style="display: none;"></p>
+    </div>
+    <br class="clear">
+</div>
+<div id="reviews"></div>
+<div class="clear"></div>
+<div class="compact">
+    <div id="galleryContainer"></div>
+    <br class="clear">
+</div>
+<script>
+
+    load("galleryContainer", "/gallery/gallery");
+    load("reviews", "/components/reviews");
+
+    var urlrewrite;
+    var artist_id = getUrlSection("id");
+    var lang = getLocalStorage("language");
+    var artistName;
+
+    if (urlrewrite) {
+        artist_id = getUrlSection("id", urlrewrite[0].original_url);
+    }
+
+    // Fill artist name
+    getData("/api/artist?id=" + artist_id, data => {
+        artistName = data.fixed.name;
+        setDocumentTitle(artistName);
+        if (data.fixed.meta_description) setMetaTag("description", data.fixed.meta_description);
+
+        $(".artistName").html(artistName);
+        if (data[lang].short_description) $("#short_description").html(data[lang].short_description).show();
+        if (data[lang].biography) $("#biography").html(data[lang].biography).show();
+    });
+
+    getData(
+        "/api/galleryitem/artworks?artist_id=" + artist_id,
+        function (data) {
+            if (!data) return console.log("No data");
+            console.log("artworks", data);
+            data.forEach(galleryItem => {
+
+                if (!galleryItem.thumbnail || !galleryItem.photo) return;
+
+                let title = (artistName ? artistName : "");
+                title += (artistName && galleryItem.data.name ? " - " : "");
+                title += (galleryItem.data.name ? galleryItem.data.name : "");
+
+                var html = '<a ';
+                html += 'href="/img/uploads/' + getImageFilename(galleryItem.photo) + '"';
+                html += 'alt="' + title + '"';
+                html += 'data-size="' + galleryItem.photo.metadata.width + 'x' + galleryItem.photo.metadata.height + '"';
+                html += 'data-med="/img/uploads/' + getImageFilename(galleryItem.photo) + '"';
+                html += 'data-med-size="' + galleryItem.photo.metadata.width + 'x' + galleryItem.photo.metadata.width + '">';
+                var alt = galleryItem.data.name ? galleryItem.data.name : getImageFilename(galleryItem.thumbnail);
+                html += '<img src="/img/uploads/' + getImageFilename(galleryItem.thumbnail) + '" alt="' + title + '" title="Klik voor grotere weergave"/>';
+                html += '<figure>';
+                html += '<span>' + title + "</span>";
+                html += '<br>';
+                if (galleryItem.data.width && galleryItem.data.height) html += galleryItem.data.width + ' x ' + galleryItem.data.height;
+                if (galleryItem.data.price) html += " | € " + galleryItem.data.price + "<br>";
+                html += '</figure>';
+                html += '</a>';
+
+                $(".gallery").append(html);
+            });
+
+            initGallery();
+            setTimeout(function () {
+                setMainHeight();
+            }, 100);
+
+        }, function (err) { console.log(err); }
+    );
+</script>

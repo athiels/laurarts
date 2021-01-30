@@ -1,0 +1,27 @@
+<div id="sitemap"></div>
+
+
+<script>
+
+    // addActionButton("open", "Open");
+    addActionButton("update", "Update");
+    setMainTitle("Sitemap");
+
+    function main() {
+        getData("/api/admin/sitemap", data => {
+            $("#sitemap").html(replaceAll(data, '\n', '<br>'));
+        });
+    }
+    main();
+
+    function update() {
+        postData("/api/admin/sitemap/update", {}, 
+            data => { 
+                addNotification("Sitemap succesvol geüpdated", "success");
+                main(); 
+            }, 
+            err => { addNotification("Sitemap kon niet geüpdated worden: " + err, "failed"); }
+        );
+    }
+
+</script>

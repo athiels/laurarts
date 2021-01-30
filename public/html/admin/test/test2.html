@@ -1,0 +1,73 @@
+<div id="qr-reader" style="width:500px"></div>
+<div id="qr-reader-results"></div>
+
+<script src="/js/html5-qrcode.min.js"></script>
+<script>
+
+    var cameras;
+    var cameraId
+    Html5Qrcode.getCameras().then(devices => {
+        cameras = devices;
+        if (cameras && cameras.length) {            
+            var currentCamera = cameras[0];
+            cameraId = currentCamera.id;
+            console.log("Using " + currentCamera.label);
+            startQrReader();
+        }
+    }).catch(err => { alert(err); });
+
+    // function docReady(fn) {
+    //     // see if DOM is already available
+    //     if (document.readyState === "complete"
+    //         || document.readyState === "interactive") {
+    //         // call on next available tick
+    //         setTimeout(fn, 1);
+    //     } else {
+    //         document.addEventListener("DOMContentLoaded", fn);
+    //     }
+    // }
+
+    // docReady(function () {
+    //     var resultContainer = document.getElementById('qr-reader-results');
+    //     var lastResult, countResults = 0;
+    //     function onScanSuccess(qrCodeMessage) {
+    //         console.log("onScanSuccess");
+    //         if (qrCodeMessage !== lastResult) {
+    //             ++countResults;
+    //             lastResult = qrCodeMessage;
+    //             resultContainer.innerHTML
+    //                 += `<div>[${countResults}] - ${qrCodeMessage}</div>`;
+    //         }
+    //     }
+    // 
+    //     var html5QrcodeScanner = new Html5QrcodeScanner("qr-reader", { fps: 10, qrbox: 250 });
+    //     html5QrcodeScanner.render(onScanSuccess);
+    // });
+
+
+    function startQrReader() {
+        // var html5QrcodeScanner = new Html5QrcodeScanner("qr-reader", { fps: 10, qrbox: 250 });
+        // html5QrcodeScanner.render(onScanSuccess);
+
+        console.log("Starting camera", cameraId);
+
+        const html5QrCode = new Html5Qrcode("qr-reader");
+        html5QrCode.start(
+            cameraId, 
+            { fps: 10, qrbox: 300 },
+            qrCodeMessage => {
+                // do something when code is read. For example:
+                console.log(`QR Code detected: ${qrCodeMessage}`);
+            },
+            errorMessage => {
+                // parse error, ideally ignore it. For example:
+                // console.log(`QR Code no longer in front of camera.`);
+            }
+        ).catch(err => {
+            // Start failed, handle it. For example,
+            console.log(`Unable to start scanning, error: ${err}`);
+        });
+    }
+
+
+</script>

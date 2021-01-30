@@ -1,0 +1,67 @@
+<div class="compact">
+
+    <h1>Contact</h1>
+    <div class="grid_4">            
+        <table class="contact_table text_center centerOnSmartphone">
+            <tr><td>Tel:</td><td><a href="tel:+32477251684"> +32 4/77 25.16.84</a></td></tr>
+            <tr><td>E-mail:</td><td><a href="mailto:info@galerijthiels.be">  info@galerijthiels.be</a></td></tr>
+            <tr><td>BTW nr:</td><td>BE0629.415.974</td></tr>
+            <tr><td>Rek nr:</td><td>BE85 3770 5002 9506</td></tr>
+            <tr><td><br></td><td></td></tr>
+            <tr><td>Galerij 1:</td><td>Hoek Bakkerstraat - Visserstraat</td></tr>
+            <tr><td>Galerij 2:</td><td>Visserstraat 25 <br> 8370 Blankenberge <br> België</td></tr>
+        </table>
+    </div>
+    
+    <div class="grid_4 text_center centerOnSmartphone">
+        <img src="/img/marc.png" class="bigIcon">
+        <p>Marc Thiels</p>
+    </div>
+    
+
+    <div class="grid_4 text_center centerOnSmartphone">
+            <img src="/img/bernd.png" class="bigIcon">
+            <p>Bernd Thiels</p>
+        </div>
+
+    <div class="grid_6" style="display: none;">
+        <form>
+            <h3>Vragen of opmerkingen?</h3>
+            <h4>We luisteren graag naar u</h4>
+
+            <input id="name" name="name" type="text" placeholder="Naam *">
+            <input id="mail" name="mail" type="email" placeholder="E-mail *">
+            <input id="phone" name="phone" type="tel" placeholder="Telefoon">
+            <textarea id="message" name="message" placeholder="Typ hier uw vraag of opmerking *"></textarea>
+        </form>
+    </div>
+    <br class="clear">    
+</div>
+
+<div id="map"></div>
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        // Initialize Google Map
+        var mapOptions = {
+            zoom: 16,
+            center: new google.maps.LatLng(51.315327, 3.127347),
+            styles: [{"featureType":"all","elementType":"geometry.fill","stylers":[{"weight":"2.00"}]},{"featureType":"all","elementType":"geometry.stroke","stylers":[{"color":"#9c9c9c"}]},{"featureType":"all","elementType":"labels.text","stylers":[{"visibility":"on"}]},{"featureType":"landscape","elementType":"all","stylers":[{"color":"#f2f2f2"}]},{"featureType":"landscape","elementType":"geometry.fill","stylers":[{"color":"#ffffff"}]},{"featureType":"landscape.man_made","elementType":"geometry.fill","stylers":[{"color":"#ffffff"}]},{"featureType":"poi","elementType":"all","stylers":[{"visibility":"off"}]},{"featureType":"road","elementType":"all","stylers":[{"saturation":-100},{"lightness":45}]},{"featureType":"road","elementType":"geometry.fill","stylers":[{"color":"#eeeeee"}]},{"featureType":"road","elementType":"labels.text.fill","stylers":[{"color":"#7b7b7b"}]},{"featureType":"road","elementType":"labels.text.stroke","stylers":[{"color":"#ffffff"}]},{"featureType":"road.highway","elementType":"all","stylers":[{"visibility":"simplified"}]},{"featureType":"road.arterial","elementType":"labels.icon","stylers":[{"visibility":"off"}]},{"featureType":"transit","elementType":"all","stylers":[{"visibility":"off"}]},{"featureType":"water","elementType":"all","stylers":[{"color":"#46bcec"},{"visibility":"on"}]},{"featureType":"water","elementType":"geometry.fill","stylers":[{"color":"#c8d7d4"}]},{"featureType":"water","elementType":"labels.text.fill","stylers":[{"color":"#070707"}]},{"featureType":"water","elementType":"labels.text.stroke","stylers":[{"color":"#ffffff"}]}]
+        };
+        var mapElement = document.getElementById('map');
+        var map = new google.maps.Map(mapElement, mapOptions);
+
+        var marker = new google.maps.Marker({
+            position: new google.maps.LatLng(51.315327, 3.127347),
+            map: map,
+            label: '1',
+            title: '1e Galerij'
+        });
+        var marker = new google.maps.Marker({
+            position: new google.maps.LatLng(51.315014, 3.126834),
+            map: map,
+            label: '2',
+            title: '2e Galerij'
+        });
+    });
+</script>

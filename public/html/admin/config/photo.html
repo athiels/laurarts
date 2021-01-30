@@ -1,0 +1,46 @@
+<h4>Afbeeldingen</h4>
+<div id="photosContainer"></div>
+
+<script>
+
+    function getPhotoStatus() {
+        $("#photosContainer").html('<i class="fas fa-spinner fa-pulse"></i> Bezig met ophalen...');
+        getData("/api/photo/status", 
+            data => { createAdminSection(data) }, 
+            err => {
+                $("#database").html('Error: '+ JSON.stringify(err));
+            }
+        );
+    }
+    getPhotoStatus();
+    
+    function createAdminSection(data) {
+        $("#photosContainer").empty();        
+
+        if (!data) return console.log("No data");
+        console.log(data);
+
+        var html  = '<table class="contact_table" >';
+            var needRestore = (data.length != data.existing.length);
+            html += '<tr><td>Status:</td><td>' + (needRestore ? "Herstel vereist" : "Allemaal beschikbaar") + '</td></tr>';
+            html += '<tr><td>Database:</td><td>' + data.length + '</td></tr>';
+            html += '<tr><td>Server:</td><td>' + data.existing.length + '</td></tr>';
+            html += '</table>';
+            if (needRestore) html += '<button id="restorePhotosButton" class="right">Herstel afbeeldingen</button>';
+
+        $("#photosContainer").html(html);
+    }
+
+    $(document).on("click", "#restorePhotosButton", function() {
+
+        $("#restorePhotosButton").remove();
+        $("#photosContainer").append('<i class="fas fa-spinner fa-pulse"></i> Bezig met herstellen...');
+
+        postData("/api/photo/restore", {}, data => {
+            getPhotoStatus();
+        }, err => {
+            console.log(err);
+        });
+    });
+
+</script>

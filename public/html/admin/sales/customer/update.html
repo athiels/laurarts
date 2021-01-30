@@ -1,0 +1,241 @@
+<div id="admin-section"></div>
+
+<script type="text/javascript">
+
+    addActionButton("back", "Terug");
+    addActionButton("vieworders", '<i class="fas fa-layer-group"></i> Orders en presentaties');
+    addActionButton("save", "Opslaan");
+    addActionMenu([
+        { id: "remove", label: "Verwijderen" }
+    ]);
+    setMainTitle("Wijzig klant");
+
+    function main() {
+        getData("/api/sales/customer?_id=" + getUrlParam("_id"), data => createAdminSection(data.docs), err => { console.log(err); })
+    }
+    main();
+
+    function createAdminSection(data) {
+        data = data[0];
+        console.log(data);
+
+        var html = '<div class="grid_10">';
+
+        html += '<h5>Persoonlijke gegevens</h5>';
+        html += '<form id="formdata">';
+        html += adminCreateInput("text", "name", data.data.name, "Naam");
+        html += adminCreateInput("text", "email", data.data.email, "E-mail");
+        html += adminCreateInput("text", "phone", data.data.phone, "Telefoon");
+        html += adminCreateInput("text", "mobile", data.data.mobile, "GSM");
+        html += adminCreateInput("text", "info", data.data.info, "Extra info");
+        html += adminCreateSelect([
+            { value: "nl", text: "Nederlands" },
+            { value: "fr", text: "Frans" },
+            { value: "en", text: "Engels" },
+            { value: "de", text: "Duits" },
+        ], "language", data.data.language, "Taalvoorkeur");
+
+        html += '<div id="newsletter">';
+            html += adminCreateButton('subscribe-button', "Inschrijven", "Nieuwsbrief");
+        html += '</div>';
+
+        html += '</form><br><br>';
+
+        html += '<h5>Leveringsadres</h5>';
+        html += '<form id="deliveryAddressData">';
+        html += adminCreateInput("text", "search_address", "", "Zoek adres");
+        html += adminCreateInput("text", "company", data.data.deliveryaddress.company, "Bedrijf");
+        html += adminCreateInput("text", "vat_number", data.data.deliveryaddress.vat_number, "BTW nummer");
+        html += adminCreateInput("text", "street", data.data.deliveryaddress.street, "Straat");
+        html += adminCreateInput("text", "house_number", data.data.deliveryaddress.house_number, "Huisnummer");
+        html += adminCreateInput("text", "box_number", data.data.deliveryaddress.box_number, "Bus");
+        html += adminCreateInput("text", "postcode", data.data.deliveryaddress.postcode, "Postcode");
+        html += adminCreateInput("text", "city", data.data.deliveryaddress.city, "Plaats");
+        html += adminCreateInput("text", "region", data.data.deliveryaddress.region, "Provincie");
+        html += adminCreateSelect(getCountries(), "country_code", data.data.deliveryaddress.country, "Land");
+        html += adminCreateTextarea("info", data.data.deliveryaddress.info, "Extra info");
+        html += '</form><br>';
+
+        html += '<h5>Facturatieadres</h5>';
+        html += adminCreateCheckbox("same_as_delivery", data.data.invoiceaddress.same_as_delivery, "Facturatieadres is hetzelfde als leveringsadres");
+
+        html += '<form id="invoiceAddressData" ' + (data.data.invoiceaddress.same_as_delivery ? 'style="display: none;"' : '') + '>';
+        html += adminCreateInput("text", "search_address", "", "Zoek adres");
+        html += adminCreateInput("text", "company", data.data.invoiceaddress.company, "Bedrijf");
+        html += adminCreateInput("text", "vat_number", data.data.invoiceaddress.vat_number, "BTW nummer");
+        html += adminCreateInput("text", "street", data.data.invoiceaddress.street, "Straat");
+        html += adminCreateInput("text", "house_number", data.data.invoiceaddress.house_number, "Huisnummer");
+        html += adminCreateInput("text", "box_number", data.data.invoiceaddress.box_number, "Bus");
+        html += adminCreateInput("text", "postcode", data.data.invoiceaddress.postcode, "Postcode");
+        html += adminCreateInput("text", "city", data.data.invoiceaddress.city, "Plaats");
+        html += adminCreateInput("text", "region", data.data.invoiceaddress.region, "Provincie");
+        html += adminCreateSelect(getCountries(), "country_code", data.data.invoiceaddress.country, "Land");
+        html += adminCreateTextarea("info", data.data.invoiceaddress.info, "Extra info");
+        html += '</form>';
+
+        html += adminCreateInput("hidden", "_id", data._id, "");
+
+        $("#admin-section").html(html);
+
+        $("#admin-section #deliveryAddressData #info").addClass("small");
+        $("#admin-section #invoiceAddressData #info").addClass("small");
+
+        updateCustomerNewsletterSubscription();
+        createGoogleAutocomplete();
+    }
+
+    function save() {
+
+        let savingNotif = addNotification('<i class="fas fa-spinner fa-pulse"></i> Bezig met opslaan...');
+
+        let formData = getFormData("formdata", err => {
+            removeNotification(savingNotif);
+            return addNotification("Fout bij opslaan: " + err, "failed");
+        });
+        formData.deliveryaddress = getFormData("deliveryAddressData", err => {
+            removeNotification(savingNotif);
+            return addNotification("Fout bij opslaan: " + err, "failed");
+        });
+
+        let geocoder = new google.maps.Geocoder();
+        let addressData = formData.deliveryaddress;
+        let address = addressData.street + ' ' + addressData.house_number + ', ' + addressData.postcode + ' ' + addressData.city + ', ' + getCountryName(addressData.country_code); 
+        geocoder.geocode({'address': address}, function(results, status) {
+            if (status == "OK") formData.deliveryaddress.geocode = results;
+            else $.alert("Geocode niet goed opgeslagen. Klik nogmaals op 'Opslaan' om opnieuw te proberen.");
+
+            let invoiceSameAsDelivery = $("#same_as_delivery").prop("checked");
+            if (invoiceSameAsDelivery) {
+                formData.invoiceaddress = { same_as_delivery: invoiceSameAsDelivery }
+            } else {
+                formData.invoiceaddress = getFormData("invoiceAddressData", err => {
+                    removeNotification(savingNotif);
+                    return addNotification("Fout bij opslaan: " + err, "failed");
+                });
+                formData.invoiceaddress.same_as_delivery = invoiceSameAsDelivery;
+            }
+            $("input[type=hidden]").each(function () {
+                formData[$(this).attr('id')] = $(this).val();
+            });
+
+            postData(
+                "/api/sales/customer/update",
+                formData,
+                function (data) {
+                    removeNotification(savingNotif);
+                    if (getUrlParam("closeonsave") == "true") return window.close();
+                    return addNotification("Succesvol opgeslagen.", "success");
+                },
+                function (err) {
+                    removeNotification(savingNotif);
+                    return addNotification("Fout bij opslaan: " + err, "failed");
+                }
+            );
+
+        });
+    }
+
+    function remove() {
+        confirm("Verwijderen", "Zeker dat je deze gebruiker wil verwijderen?", function () {
+            var removingNotif = addNotification('<i class="fas fa-spinner fa-pulse"></i> Bezig met opslaan...');
+            var formData = {};
+            $("input[type=hidden]").each(function () {
+                formData[$(this).attr('id')] = $(this).val();
+            });
+            postData("/api/sales/customer/delete", formData, data => {
+                removeNotification(removingNotif);
+                back();
+            }, err => {
+                removeNotification(removingNotif);
+                addNotification("Fout bij verwijderen: " + JSON.stringify(err), "failed");
+            });
+        });
+    }
+
+    function vieworders() {
+        location.href = "/admin/sales/customer/orders?customer_id=" + getUrlParam("_id");
+    }
+
+    $(document).on("change", "#same_as_delivery", function () {
+        if ($(this).prop("checked")) $("#invoiceAddressData").hide();
+        else $("#invoiceAddressData").show();
+    });
+
+    function createGoogleAutocomplete() {
+        var deliveryAddressStreet = $("#deliveryAddressData #search_address")[0];
+        deliveryAddressAutocomplete = new google.maps.places.Autocomplete(deliveryAddressStreet);
+        deliveryAddressAutocomplete.setFields(["address_components", "name"]);
+        deliveryAddressAutocomplete.addListener('place_changed', function () {
+            var place = deliveryAddressAutocomplete.getPlace();
+            console.log(place);
+            fillAddress("#deliveryAddressData", place);
+        });
+
+        var invoiceAddressStreet = $("#invoiceAddressData #search_address")[0];
+        invoiceAddressAutocomplete = new google.maps.places.Autocomplete(invoiceAddressStreet);
+        invoiceAddressAutocomplete.setFields(["address_components", "name"]);
+        invoiceAddressAutocomplete.addListener('place_changed', function () {
+            var place = invoiceAddressAutocomplete.getPlace();
+            console.log(place);
+            fillAddress("#invoiceAddressData", place);
+        });
+    }
+
+    function fillAddress(selector, place) {
+        var components = Object();
+        place.address_components.forEach(component => {
+            component.types.forEach(type => { components[type] = component; });
+        });
+
+        if (place.name) $(selector + " #company").val(place.name);
+
+        Object.keys(components).forEach(key => {
+            var component = components[key];
+            if (key == "route") $(selector + " #street").val(component.long_name);
+            if (key == "street_number") $(selector + " #house_number").val(component.long_name);
+            if (key == "postal_code") $(selector + " #postcode").val(component.long_name);
+            if (key == "locality") $(selector + " #city").val(component.long_name);
+            if (key == "administrative_area_level_2") $(selector + " #region").val(component.long_name);
+            if (key == "country") {
+                $(selector + " #country_code").val(component.short_name);
+                if (components[key].short_name == "BE") $(selector + " #region").val(components["administrative_area_level_2"].long_name);
+                else $(selector + " #region").val(components["administrative_area_level_1"].long_name);
+            }
+        });
+    }
+
+    $("#formdata #email").focusout(updateCustomerNewsletterSubscription);
+
+    function updateCustomerNewsletterSubscription() {
+        let email = $("#formdata #email").val();
+        getData("/api/newsletter/subscriptions?email=" + email, data => {
+            let html;
+            if (data.length && data[0].email == email) html = adminCreateInfo("Nieuwsbrief", 'Ingeschreven');            
+            else html = adminCreateButton('subscribe-button', "Inschrijven", "Nieuwsbrief");
+            $("#newsletter").html(html);
+        });
+    }
+
+    $(document).on("click", "#newsletter #subscribe-button", function() {
+        let subscriptionData = {
+            name: $("#formdata #name").val(),
+            email: $("#formdata #email").val()
+        };
+
+        if (!subscriptionData.name || !subscriptionData.email) return $.alert("Naam en e-mail adres moeten ingevuld zijn om de klant in te schrijven voor de nieuwsbrief.");
+        
+        postData("/api/newsletter/subscribe", subscriptionData, 
+            data => {
+                html = adminCreateInfo("Nieuwsbrief", 'Ingeschreven');
+                $("#newsletter").html(html);
+            },
+            error => {                
+                $.alert({
+                    title: 'Oei, er liep iets mis.',
+                    content: 'De inschrijving voor de nieuwsbrief is niet gelukt.',
+                });
+            }
+        );
+    });
+
+</script>

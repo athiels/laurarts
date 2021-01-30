@@ -1,0 +1,53 @@
+<ul id="admin-table" class="admin-table grid_12"></ul>
+<br class="clear">
+
+
+<script type="text/javascript">
+
+    var subscriptions;
+
+    function main() {
+        getData("/api/newsletter/subscriptions", data => { createAdminSection(data) }, err => { addNotification("Fout bij het ophalen van data: " + err, "failed"); });
+    }
+    main();
+
+    function createAdminSection(data) {
+        console.log(data);
+        subscriptions = data;
+        setMainTitle("Nieuwsbrief inschrijvingen");
+        setSubTitle(subscriptions.length + " items");
+
+        $("#admin-table").empty();
+        var lang = getAdminLang();
+        data.forEach(subscription => {
+            var html = '<li id="' + subscription._id + '" class="grid_12">';
+            
+            html += '<div class="grid_3">' + subscription.name + '</div>';
+            html += '<div class="grid_6">' + subscription.email + '</div>';
+            html += '<div class="grid_2 ellipsis">' + formatDateTime(subscription.createdAt) + '</div>';
+            html += '<div class="grid_1 listActionButton" title="Verwijderen"><i class="fas fa-trash"></i></div>';
+            
+            html += '</li>';
+
+            $("#admin-table").append(html);
+        });
+    }
+
+    $(document).on("click", "#admin-table li .listActionButton", function(e) {
+        e.stopPropagation();
+        id = $(this).closest("li").attr('id');
+        let subscription = subscriptions.find(subscription => { return subscription._id == id });
+
+        confirm("Inschrijving verwijderen?", "Ben je zeker dat je " + subscription.name + " (" + subscription.email + ") wil verwijderen van de nieuwsbrief?", function() {
+            let removingNotif = addNotification('<i class="fas fa-spinner fa-pulse"></i> Bezig met verwijderen...');            
+            postData( "/api/newsletter/unsubscribe", { _id: id }, data => {
+                removeNotification(removingNotif);
+                main();
+            }, err => { 
+                removeNotification(removingNotif);
+                addNotification("Fout bij verwijderen: " + JSON.stringify(err), "failed");
+            });
+        });
+    });
+
+</script>

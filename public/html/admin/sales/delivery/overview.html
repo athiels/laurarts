@@ -1,0 +1,260 @@
+<div class="filter-bar">
+    <div class="label-next-to-input filter">
+        <label for="delivery-timing">Timing:</label><select name="delivery-timing" id="delivery-timing">
+            <option value="all" selected>Alle</option>
+            <option value="delivery_method_specific" >Specifieke datum</option>
+            <option value="delivery_method_around">Rond</option>
+            <option value="delivery_method_contact_around">Telefonisch verder af te spreken rond</option>            
+        </select>
+        <input type="date" name="delivery-date-input" id="delivery-date-input">
+        <button id="previous-day-button"><i class="fas fa-angle-left"></i></button>
+        <button id="next-day-button"><i class="fas fa-angle-right"></i></button>
+    </div>
+</div>
+
+<div id="delivery_list" class="grid_3"></div>
+<ul id="delivery_map" class="grid_9"></ul>
+
+<script type="text/javascript">
+
+    var markers = Array();
+    var map;
+    var orders, presentations;
+
+    $(document).ready(function() {
+        let today = new Date();
+        $("#delivery-date-input").val(today.toISOString().substr(0, 10));
+
+        map = createMap();
+        addOrdersAndPresentations();
+    });
+
+    function addOrdersAndPresentations() {
+        getData( "/api/sales/order?current=true", ordersData => {
+            getData( "/api/sales/presentation", presentationsData => {                
+                orders = ordersData.filter(item => { return item.data.delivery_method == "delivery_internal" });
+                orders.forEach(order => { 
+                    order.type = 'order'; 
+                    if (order.data.deliverydate) order.data.delivery_date = order.data.deliverydate;
+                });
+                presentations = presentationsData;
+                presentations.forEach(presentation => { presentation.type = 'presentation'; });
+                showDeliveries();
+            }, err => { console.log(err); } );
+        }, err => { console.log(err); } );
+    }
+
+    $("#previous-day-button").click(function() {
+        let day = new Date($("#delivery-date-input").val());
+        day.setDate(day.getDate() - 1);
+        $("#delivery-date-input").val(day.toISOString().substr(0, 10));
+        showDeliveries();
+    });
+    $("#next-day-button").click(function() {
+        let day = new Date($("#delivery-date-input").val());
+        day.setDate(day.getDate() + 1);
+        $("#delivery-date-input").val(day.toISOString().substr(0, 10));
+        showDeliveries();
+    });
+
+    $("#delivery-timing, #delivery-date-input").change(showDeliveries);
+
+    function showDeliveries() {
+        
+        removeMarkers();
+        removeDetails();
+
+        let today = new Date();
+        let timeframe = 14;
+
+        let deliveryList = orders.concat(presentations);
+        let specificDeliveryList = deliveryList.filter(delivery => { return delivery.data.delivery_method_timing == "delivery_method_specific" });
+        let aroundDeliveryList = deliveryList.filter(delivery => { return delivery.data.delivery_method_timing == "delivery_method_around" });
+        let callAroundDeliveryList = deliveryList.filter(delivery => { return delivery.data.delivery_method_timing == "delivery_method_contact_around" });
+
+        let deliveryDate = new Date($("#delivery-date-input").val());
+        let deliveryTiming = $("#delivery-timing").val();
+
+        filteredDeliveries = Array();
+
+        // console.log(specificDeliveryList);
+        if (deliveryTiming == "all" || deliveryTiming == "delivery_method_specific") {            
+            specificDeliveryList.forEach((delivery) => {
+                if (deliveryDate.toDateString() == new Date(delivery.data.delivery_date).toDateString()) {                    
+                    filteredDeliveries.push(delivery);
+                }
+            });
+        }
+
+        if (deliveryTiming == "all" || deliveryTiming == "delivery_method_around") {
+            aroundDeliveryList.forEach((delivery) => {      
+                let startDate = new Date();
+                let endDate = new Date();
+                startDate.setDate(today.getDate() - (timeframe/2));
+                endDate.setDate(today.getDate() + (timeframe/2));
+                if (startDate.getTime() < deliveryDate.getTime() && deliveryDate.getTime() < endDate.getTime()) {
+                    filteredDeliveries.push(delivery);
+                }
+            });
+        }
+
+        // console.log("filteredDeliveries", filteredDeliveries);
+
+        filteredDeliveries.sort((a,b) => {
+            a = Date.parse(a.data.delivery_date);
+            b = Date.parse(b.data.delivery_date);
+            return ( a > b) ? 1 : (b > a) ? -1 : 0;
+        });
+
+        filteredDeliveries.forEach( (delivery, index) => {
+            if (delivery.customer.data.deliveryaddress.geocode) {
+                createMarker(map, delivery, index);
+                createDetail(delivery, index);
+            }
+            else {
+                createDetail(delivery);
+            }
+            
+        });
+    }  
+    
+    function createMap() {
+        var mapOptions = {
+            zoom: 8,
+            center: new google.maps.LatLng(50.887436, 4.347228),
+            styles: [{"featureType":"all","elementType":"geometry.fill","stylers":[{"weight":"2.00"}]},{"featureType":"all","elementType":"geometry.stroke","stylers":[{"color":"#9c9c9c"}]},{"featureType":"all","elementType":"labels.text","stylers":[{"visibility":"on"}]},{"featureType":"landscape","elementType":"all","stylers":[{"color":"#f2f2f2"}]},{"featureType":"landscape","elementType":"geometry.fill","stylers":[{"color":"#ffffff"}]},{"featureType":"landscape.man_made","elementType":"geometry.fill","stylers":[{"color":"#ffffff"}]},{"featureType":"poi","elementType":"all","stylers":[{"visibility":"off"}]},{"featureType":"road","elementType":"all","stylers":[{"saturation":-100},{"lightness":45}]},{"featureType":"road","elementType":"geometry.fill","stylers":[{"color":"#eeeeee"}]},{"featureType":"road","elementType":"labels.text.fill","stylers":[{"color":"#7b7b7b"}]},{"featureType":"road","elementType":"labels.text.stroke","stylers":[{"color":"#ffffff"}]},{"featureType":"road.highway","elementType":"all","stylers":[{"visibility":"simplified"}]},{"featureType":"road.arterial","elementType":"labels.icon","stylers":[{"visibility":"off"}]},{"featureType":"transit","elementType":"all","stylers":[{"visibility":"off"}]},{"featureType":"water","elementType":"all","stylers":[{"color":"#46bcec"},{"visibility":"on"}]},{"featureType":"water","elementType":"geometry.fill","stylers":[{"color":"#c8d7d4"}]},{"featureType":"water","elementType":"labels.text.fill","stylers":[{"color":"#070707"}]},{"featureType":"water","elementType":"labels.text.stroke","stylers":[{"color":"#ffffff"}]}],
+            disableDefaultUI: true,
+        };
+        let mapElement = document.getElementById('delivery_map');
+        let map = new google.maps.Map(mapElement, mapOptions);
+        return map;
+    }
+
+    function createMarker(map, delivery, index) {
+        if (delivery.customer.data.deliveryaddress.geocode) {
+            let addressData = delivery.customer.data.deliveryaddress;
+            let address = addressData.street + ' ' + addressData.house_number + ', ' + addressData.postcode + ' ' + addressData.city + ', ' + getCountryName(addressData.country_code); 
+            
+            let iconUrl;
+            if (delivery.type == "order") iconUrl = "/img/marker_full_yellow.png";
+            else if (delivery.type == "presentation") iconUrl = "/img/marker_full_blue.png";
+            
+            let marker = new google.maps.Marker({
+                map: map,
+                position: delivery.customer.data.deliveryaddress.geocode[0].geometry.location,
+                label: {
+                    color: "#fff",
+                    fontSize: '12px',
+                    fontWeight: '900',
+                    text: index.toString() // pad(index, 2)
+                },
+                title: address,
+                delivery: delivery,
+                icon: {
+                    url: iconUrl,
+                    color: "#fff",
+                    size: new google.maps.Size(45, 45),
+                    labelOrigin: new google.maps.Point(16, 16),
+                }
+            });
+
+            google.maps.event.addListener(marker, 'click', function() {
+                highlightDelivery(index);
+            });
+
+            markers.push(marker);
+        }
+    }
+
+    function removeMarkers() {
+        for (let i = 0; i < markers.length; i++) {
+            markers[i].setMap(null);
+        }
+        markers = Array();
+    }
+
+    function removeDetails() {
+        $("#delivery_list").empty();
+    }
+
+    function createDetail(delivery, index) {
+        let info = delivery.customer.data.name;
+        let action;
+        if (delivery.type == 'order') action = 'Leveren';
+        else if (delivery.type == 'presentation') action = 'Presenteren';
+
+        if (delivery.data.delivery_method_timing == "delivery_method_specific") {
+            info += '<br>' + action + ' op ' + formatDate(delivery.data.delivery_date);
+        } else if (delivery.data.delivery_method_timing == "delivery_method_around") {
+            info += '<br>Leveren rond ' + formatDate(delivery.data.delivery_date);
+        }
+        let addressData = delivery.customer.data.deliveryaddress;
+        let address = addressData.street + ' ' + addressData.house_number + '<br>' + addressData.postcode + ' ' + addressData.city + '<br>' + getCountryName(addressData.country_code); 
+
+        let html = '';
+        html += '<li  class="' + delivery.type + '" data-index="' + index + '" data-type="' + delivery.type + '" data-id="' + delivery._id + '">';
+        html += '<div class="marker">';
+            if (index !== null) {
+                if (delivery.type == "order") html += '<img src="/img/marker_full_yellow.png">';
+                else if (delivery.type == "presentation") html += '<img src="/img/marker_full_blue.png">';   
+                html += '<span>' + index + '</span>';
+            }
+            html += '</div>';
+        html += '<div class="info">';
+            html += info;
+            html += '<div class="address">';
+            html += address;
+            html += '</div>';
+        html += '</div>';
+        
+        html += '</li>';
+            
+        $("#delivery_list").append(html);
+    }
+
+    function highlightDelivery(index) {
+        $('#delivery_list li.active').removeClass("active");
+        $('#delivery_list li[data-index="' + (index) + '"]').addClass("active");
+        $('#delivery_list li[data-index="' + (index) + '"]')[0].scrollIntoView({
+            behavior: "smooth"
+        });
+    }
+
+    $("#delivery_list").on("click", "li .marker", function() {
+        stopMarkerAnimation();
+        $("#delivery_list li.active").removeClass("active");
+
+        $(this).addClass("active");
+        index = $(this).parents("li").data("index");
+        markers[index].setAnimation(google.maps.Animation.BOUNCE);
+
+        setTimeout(function() {
+            stopMarkerAnimation();
+            $('#delivery_list li.active').removeClass("active"); 
+        }, 4800);
+    });
+
+    $("#delivery_list").on("click", "li:not(.marker)", function() {
+        adminLoadModal("/sales/delivery/details", {
+            id: $(this).data("id"),
+            type: $(this).data("type")
+        });
+    });
+
+    function stopMarkerAnimation() {
+        markers.forEach(marker => {
+            marker.setAnimation(null);
+        });
+    }
+
+    function pad(num, size) {
+        let s = num + "";
+        while (s.length < size) s = "0" + s;
+        return s;
+    }
+
+    $('.modal').on($.modal.BEFORE_CLOSE, function(event, modal) {
+        addOrdersAndPresentations();
+    });
+    
+</script>

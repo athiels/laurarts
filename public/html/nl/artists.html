@@ -1,0 +1,66 @@
+<div class="compact">
+    <h1>Kunstenaars</h1>
+
+    <div class="grid_8 grid_shift_2">
+        <p class="intro">
+            Het zoeken naar nieuwe kunstenaars is een essentiëel deel van onze activiteit. 
+            Op die manier slagen we erin steeds unieke en vernieuwende werken te exposeren. 
+            Inmiddels hebben we met een aantal kunstenaars exclusieve afspraken, waardoor hun werken in België enkel in onze galerijen te vinden zijn. 
+            We stellen ze graag aan u voor.
+        </p>
+    </div>
+    <div id="artists_summary" class="grid_12 text-center" style="display: none;"></div>
+    <div id="artists" class="grid_8 grid_shift_2"></div>
+    <div class="clear"></div>
+</div>
+
+<div class="kpi-bar no-bottom-margin">
+    <div id="newsletterSubscription" class="vertical-padding-md"></div>
+    <div class="clear"></div>
+</div>
+
+
+<script type="text/javascript">
+
+    setDocumentTitle("Kunstenaars");
+    setMetaTag("description", "Het zoeken naar nieuwe kunstenaars is een essentiëel deel van onze activiteit. Op die manier slagen we erin steeds unieke en vernieuwende werken te exposeren.")
+
+    load("newsletterSubscription", "/components/newsletter-subscription");
+
+    getData(
+        "/api/artist",
+        function (data) {
+            console.log(data);
+            var lang = getLocalStorage("language");
+            let artists = data.filter(artist => { return artist.fixed.show == "true" });
+            artists.forEach((artist, index) => {
+                if (artist.fixed.show == "false") return;
+                var url = (artist.fixed.custom_url && artist.fixed.custom_url_active == "true") ? artist.fixed.custom_url : "/artist/id/" + artist._id;
+                var html = '<a href=' + url + ' class="no-layout" >';
+                if (artist.avatar) html += '<img src="/img/uploads/' + getImageFilename(artist.avatar.thumbnail) + '" class="img-smallest" alt="Afbeelding ' + artist.fixed.name + '">';
+                html += '</a>';
+                $("#artists_summary").append(html);
+
+                html = '<div class="switching-columns">';
+                html += '<div class="column">';
+                html += '<div class="text-center">';
+                html += '<img src="/img/uploads/' + getImageFilename(artist.avatar.thumbnail) + '" class="small-img shadow" alt="">';
+                html += '</div>';
+                html += '</div>';
+                html += '<div class=" column">';
+                html += '<h2>' + artist.fixed.name + '</h2>';
+                html += '<p>' + artist[lang].short_description;
+                html += '<br><br><a href="'+url+'">Lees meer over ' + artist.fixed.name + '</a>';
+                html += '</p>';
+                html += '</div>'
+                html += '</div>';
+                html += '<br class="clear">';
+                html += '<div style="margin-top: 100px;"></div>';
+
+                $("#artists").append(html);
+            });
+            setMainHeight();
+        }
+    );
+
+</script>

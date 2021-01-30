@@ -1,0 +1,81 @@
+<ul id="admin-table" class="admin-table grid_12">
+    <li class="default">
+        <i class="fas fa-layer-group"></i><br>
+        Geen orders of presentaties
+    </li>
+</ul>
+
+
+<script type="text/javascript">
+
+    addActionButton("createOrder", "Nieuw order");
+    addActionButton("createPresentation", "Nieuwe presentatie");
+
+    getData( "/api/sales/order?customer_id=" + getUrlParam("customer_id"), orders => {
+        getData( "/api/sales/presentation?customer_id=" + getUrlParam("customer_id"), presentations => {
+            createAdminSection(orders, presentations);
+        }, err => { console.log(err); } );
+    }, err => { console.log(err); } );
+    
+
+    function createAdminSection(orders, presentations) {
+        // console.log("orders", orders);
+        // console.log("presentations", presentations);
+
+        setMainTitle("Orders en presentaties van " + orders[0].customer.data.name);
+        setSubTitle((orders.length + presentations.length) + " items");
+
+        if (!orders.length && !presentations.length) return;
+        $("#admin-table").empty();
+
+        orders.forEach(order => { order.type = "order"; });
+        presentations.forEach(presentation   => { presentation.type = "presentation"; });
+
+        items = orders.concat(presentations);
+        items.sort((a,b) => (a.createdAt < b.createdAt) ? 1 : ((b.createdAt < a.createdAt) ? -1 : 0)); 
+
+        if (user = getUser()) admin = getUserPermission("admin");
+
+        items.forEach(item => {           
+            var html = '<li id="'+item._id+'" data-type="'+item.type+'" class="grid_12">';
+            html += '<div class="grid_1">';
+            if (item.type == 'order') html += '<i class="fas fa-layer-group"></i> Order';
+            else if (item.type == 'presentation') html += '<i class="fas fa-chalkboard-teacher"></i> Presentatie';
+            html += '</div>';
+            if (admin == "true") html += '<div class="grid_1 ellipsis">' + item.number + '</div>'
+            html += '<div class="grid_2">'+formatDate(item.createdAt)+'</div>';
+            html += '<div class="grid_4">';
+            item.data.artworks.forEach(artwork => {
+                html += (artwork.artist ? artwork.artist + ': ' : '') + artwork.description + '<br>';
+            });
+            html += '</div>';            
+            html += '<br class="clear"></div>';
+
+            html += '<div class="smartphone-show">';
+            html += item.id + ' - ' + formatDate(item.createdAt) + ' | ' + item.customer.data.name + '<br>';
+            item.data.artworks.forEach(artwork => {
+                html += artwork.artist + ' - ' + artwork.description + '<br>';
+            });
+            
+
+            html += '</li>';
+
+            $("#admin-table").append(html);
+        });
+    }
+
+    $(document).on("click", "#admin-table li", function(e) {
+        e.stopPropagation();
+        id = $(this).attr('id');
+        location.href = "/admin/sales/" + $(this).data("type") + "/update?id="+id;
+    });
+
+    function createOrder() {
+        location.href = "/admin/sales/order/create?customer_id="+getUrlParam("customer_id");
+    }
+
+    function createPresentation() {
+        location.href = "/admin/sales/presentation/create?customer_id="+getUrlParam("customer_id");
+    }
+    
+</script>

@@ -1,0 +1,61 @@
+<div id="formContainer"></div>
+    
+<script type="text/javascript">
+
+    adminLoad("formContainer", "/admin/sales/customer/form");
+
+    addActionButton("back", "Terug");
+    addActionButton("save", "Opslaan");
+    addActionButton("saveAndContinueToOrder", "Verder naar order");
+    setMainTitle("Nieuwe klant");
+
+    function save(continueToOrder) {
+
+        if (!validateForm("formdata")) return addNotification('Gelieve alle velden met een * in te vullen.', "failed");
+
+        var savingNotif = addNotification('<i class="fas fa-spinner fa-pulse"></i> Bezig met opslaan...');
+
+        var formData = getFormData("formdata", err => {
+            return addNotification("Fout bij opslaan: " + err, "failed");
+        });
+        
+        formData.deliveryaddress = getFormData("deliveryAddressData", err => {
+            return addNotification("Fout bij opslaan: " + err, "failed");
+        });
+        let geocoder = new google.maps.Geocoder();
+        let addressData = formData.deliveryaddress;
+        let address = addressData.street + ' ' + addressData.house_number + ', ' + addressData.postcode + ' ' + addressData.city + ', ' + getCountryName(addressData.country_code); 
+        geocoder.geocode({'address': address}, function(results, status) {
+            if (status == "OK") formData.deliveryaddress.geocode = results;
+
+            var invoiceSameAsDelivery = $("#same_as_delivery").prop("checked");
+            if (invoiceSameAsDelivery) {
+                formData.invoiceaddress = { same_as_delivery: invoiceSameAsDelivery}
+            } else {
+                formData.invoiceaddress = getFormData("invoiceAddressData", err => {
+                    return addNotification("Fout bij opslaan: " + err, "failed");
+                });
+                formData.invoiceaddress.same_as_delivery = invoiceSameAsDelivery;
+            }
+            
+            postData(
+                "/api/sales/customer/create",
+                formData,
+                function(data) {
+                    console.log(data);
+                    if (continueToOrder) return window.location.href = "/admin/sales/order/create?customer_id=" + data._id; 
+                    return back();
+                },
+                function(err) {
+                    removeNotification(savingNotif);
+                    return addNotification("Fout bij opslaan: " + err, "failed");
+                }
+            );
+        });
+    }
+
+    function saveAndContinueToOrder() {
+        save(true);
+    }
+
+</script>

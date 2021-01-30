@@ -1,0 +1,65 @@
+<div id="admin-section"></div>
+    
+<script type="text/javascript">
+
+    addActionButton("back", "Terug");
+    addActionButton("save", "Opslaan");
+    setMainTitle("Nieuwe gebruiker");
+
+    function createAdminSection() {
+        var html = '<div class="grid_6">';
+                
+        html += '<h5>Vaste gegevens</h5>';
+        html += '<form id="fixedData">';
+        html += adminCreateInput("text", "name", "", "Naam");
+        html += adminCreateSelect([{value: "true", text: "Ja"}, {value: "false", text: "Nee"}], "active", "", "Actief");
+        html += '</form><br><br>';
+
+        html += '<h5>Persoonlijke gegevens</h5>';
+        html += '<form id="userData">';        
+        html += adminCreateInput("text", "email", "", "E-mail");
+        html += adminCreateInput("text", "username", "", "Gebruikersnaam");
+        html += adminCreateInput("password", "password", "", "Wachtwoord");
+        html += adminCreateInput("password", "password_confirm", "", "Bevestig wachtwoord");        
+        html += '</form><br><br>';
+
+        html += '<h5>Rechten</h5>';
+        html += '<form id="permissions">';        
+        html += adminCreateSelect([{value: "true", text: "Ja"}, {value: "false", text: "Nee"}], "super_admin", "", "Super admin"); 
+        html += '</form>';
+
+        $("#admin-section").html(html);
+    } 
+    createAdminSection();
+
+    function save() {
+
+        var savingNotif = addNotification('<i class="fas fa-spinner fa-pulse"></i> Bezig met opslaan...');
+
+        var userData = getFormData("userData", err => {
+            removeNotification(savingNotif);
+            return addNotification("Fout bij opslaan: " + err, "failed");
+        });
+        userData.fixed = getFormData("fixedData", err => {
+            removeNotification(savingNotif);
+            return addNotification("Fout bij opslaan: " + err, "failed");
+        });        
+        userData.permissions = getFormData("permissions", err => {
+            removeNotification(savingNotif);
+            return addNotification("Fout bij opslaan: " + err, "failed");
+        });
+        
+        postData(
+            "/api/admin/user/create",
+            userData,
+            function(data) {
+                return back();
+            },
+            function(err) {
+                removeNotification(savingNotif);
+                return addNotification("Fout bij opslaan: " + err, "failed");
+            }
+        )
+    }
+
+</script>

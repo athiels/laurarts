@@ -1,0 +1,48 @@
+<div class="compact">        
+    <div id="admin-section"></div>
+</div>
+
+<script type="text/javascript">
+
+    addActionButton("back", "Terug");
+    addActionButton("save", "Opslaan");
+    addActionMenu([
+        { id: "remove", label: "Verwijderen" }
+    ]);
+    setMainTitle("Wijzig URL rewrite");
+
+    getData( "/api/urlrewrite?id="+getUrlParam("id"), data => { createAdminSection(data[0]) });
+
+    function createAdminSection(data) {
+        console.log(data);
+        var html = '<form id="editForm" class="grid_6">';
+        html += adminCreateInput("text", "original_url", data.original_url, "Originele URL");
+        html += adminCreateInput("text", "new_url", data.new_url, "Nieuwe URL");
+        html += adminCreateInput("hidden", "_id", data._id);
+        html += '</form>'; 
+        $("#admin-section").html(html);
+    } 
+
+    function save() {
+        var formData = getFormData("editForm");
+        formData.lang = getAdminLang();
+        postData( "/api/urlrewrite/update", formData, data => { 
+            //back();
+            addNotification("Succesvol opgeslagen.", "success");
+         }, err => { 
+            addNotification("Fout bij opslaan: " + JSON.stringify(err), "failed");
+         });
+    }
+
+    function remove() {
+        confirm("Verwijderen", "Zeker dat je deze urlrewrite wil verwijderen?", function() {
+            var formData = getFormData("editForm");
+            postData( "/api/urlrewrite/delete", formData, data => { 
+                back();
+            }, err => { 
+                addNotification("Fout bij verwijderen: " + JSON.stringify(err), "failed");
+            });
+        }) ;
+    }
+
+</script>

@@ -1,0 +1,180 @@
+<div id="admin-section" class="smallFont" style="margin: 0 30px;" >
+    <img src="/img/logo.png" style="height: 40px;" class="left"/>
+    <div id="qrcode" class="right" style="width:100px; height:100px;"></div>
+    <div class="clear"></div>
+    <h3>Orderbon #<span id="order_number"></span> <span id="order_date" class="right"></span></h3>
+    
+    <hr><br>
+    <div id="customerData"></div>
+    <br><hr><br>
+    <div id="artworksData"></div>
+    <br><hr><br>
+    <div id="orderData"></div>
+    <br>
+    <div id="signatureData">
+        <div style="display: inline-block; width: 310px;">
+            <h5>Verkoper,</h5>
+            <div id="seller-signature" class="signature"></div>
+        </div>
+        <div style="display: inline-block; width: 310px; margin-left: 25px">
+            <h5>Koper,</h5>
+            <div id="buyer-signature" class="signature"></div>
+        </div>
+    </div>
+    <br><hr><br>
+    <div id="sellerData">        
+        <h5>Galerij Thiels</h5>
+        <div style="display: inline-block; width: 33%;">
+            Hoek Visserstraat - Bakkerstraat<br>
+            8370 Blankenberge<br>
+            België
+        </div>
+        <div style="display: inline-block; width: 33%;">
+            GSM: 0477 25 16 84<br>
+            BTW nr.: BE0629.415.974<br>
+            Rek nr.: BE85 3770 5002 9506
+        </div>
+        <div style="display: inline-block; width: 33%;">
+            info@galerijthiels.be<br>
+            www.galerijthiels.be
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    var qrcode = new QRCode(document.getElementById("qrcode"), { width : 100, height : 100 });
+
+    function generateQrCode(string) {		
+        qrcode.makeCode(string);
+    }
+</script>
+
+<script src="/js/signature/jSignature.min.js"></script>
+<div id="seller-signature"></div>
+<script>
+    $(document).ready(function() {
+        $("#seller-signature").jSignature({'background-color': 'transparent', 'decor-color': 'transparent', 'height':'160px'});
+        $("#buyer-signature").jSignature({'background-color': 'transparent', 'decor-color': 'transparent', 'height':'160px'});
+    })
+
+    function getSignature(query) {
+        let imageString = $(query).jSignature("getData");
+        $(query).html('<img src="' + imageString + '">');
+    }    
+</script>
+    
+<script type="text/javascript">
+
+    //addActionButton("back", "Terug");
+    addActionButton("downloadAsPdf", "Download");
+    addActionButton("print", "Print");
+
+    var order;
+
+    function main() {
+        getData("/api/sales/order?_id="+getUrlParam("order_id"), data => createAdminSection(data), err => { console.log(err); });
+    }
+    main();
+
+    const delivery_method = {
+        pickup: "Afhaling",
+        delivery_internal: "Persoonlijke levering",
+        delivery_external: "Verzending"
+    }
+    const delivery_method_timing = {
+        delivery_method_specific: "Specifieke datum",
+        delivery_method_around: "Rond",
+        delivery_method_contact_around: "Telefonisch verder af te spreken rond"
+    }
+
+    function createAdminSection(data) {
+        order = data[0];
+        console.log(order);
+
+        $("#order_number").html(order.number);
+        $("#order_date").html(formatDate(order.createdAt));
+        generateQrCode(order._id);
+
+        var customer = order.customer;
+        var html = '';
+        html += '<h5>Klantgegevens</h5>';
+        if (customer.data.name) html += adminCreateInfo("Naam", customer.data.name);
+        if (customer.data.email) html += adminCreateInfo("Email", customer.data.email);
+        if (customer.data.phone) html += adminCreateInfo("Telefoon", customer.data.phone);
+        if (customer.data.mobile) html += adminCreateInfo("GSM", customer.data.mobile);
+        if (customer.data.info) html += adminCreateInfo("Extra info", customer.data.info);
+        html += '<br>';
+
+        var deliveryAddressHtml = '';
+        if (customer.data.deliveryaddress.street) deliveryAddressHtml += customer.data.deliveryaddress.street + " ";
+        if (customer.data.deliveryaddress.house_number) deliveryAddressHtml += customer.data.deliveryaddress.house_number + "<br>";
+        if (customer.data.deliveryaddress.postcode) deliveryAddressHtml += customer.data.deliveryaddress.postcode + " ";
+        if (customer.data.deliveryaddress.city) deliveryAddressHtml += customer.data.deliveryaddress.city + "<br>";
+        if (customer.data.deliveryaddress.country_code) deliveryAddressHtml += getCountryName(customer.data.deliveryaddress.country_code) + "<br>";
+        if (customer.data.deliveryaddress.info) deliveryAddressHtml += customer.data.deliveryaddress.info + "<br>";
+        if (deliveryAddressHtml) html += adminCreateInfo("Leveringsadres", deliveryAddressHtml);
+
+        html += '<br>';
+        var invoiceAddressHtml = '';
+        if (customer.data.invoiceaddress.same_as_delivery) invoiceAddressHtml += "Hetzelde als leveringsadres";
+        else {
+            if (customer.data.invoiceaddress.company) invoiceAddressHtml += customer.data.invoiceaddress.company + "<br>";
+            if (customer.data.invoiceaddress.street) invoiceAddressHtml += customer.data.invoiceaddress.street + " ";
+            if (customer.data.invoiceaddress.house_number) invoiceAddressHtml += customer.data.invoiceaddress.house_number + "<br>";
+            if (customer.data.invoiceaddress.postcode) invoiceAddressHtml += customer.data.invoiceaddress.postcode + " ";
+            if (customer.data.invoiceaddress.city) invoiceAddressHtml += customer.data.invoiceaddress.city + "<br>";
+            if (customer.data.invoiceaddress.country_code) invoiceAddressHtml += getCountryName(customer.data.deliveryaddress.country_code) + "<br>";
+            if (customer.data.invoiceaddress.vat_number) invoiceAddressHtml += customer.data.invoiceaddress.vat_number + "<br>";
+            if (customer.data.invoiceaddress.info) invoiceAddressHtml += customer.data.invoiceaddress.info + "<br>";
+        }
+        if (invoiceAddressHtml) html += adminCreateInfo("Facturatieadres", invoiceAddressHtml);
+
+        $("#customerData").html(html);
+
+
+        html = '';
+        order.data.artworks.forEach( (artwork, index) => {
+            html += '<h5>Kunstwerk '+ (index+1)+'</h5>';
+            if (artwork.commissioned) html += adminCreateInfo("In opdracht", "Ja");
+            if (artwork.artist) html += adminCreateInfo("Kunstenaar", artwork.artist);
+            if (artwork.description) html += adminCreateInfo("Beschrijving", artwork.description);
+            if (artwork.dimensions) html += adminCreateInfo("Afmetingen", artwork.dimensions);
+            if (artwork.price) html += adminCreateInfo("Prijs", formatPrice(artwork.price));
+        });
+        $("#artworksData").html(html);
+
+        html = '';
+        html += '<h5>Ordergegevens</h5>';
+        if (order.data.total_price) html += adminCreateInfo("Prijs", formatPrice(order.data.total_price));
+        if (order.data.advance) html += adminCreateInfo("Voorschot", formatPrice(order.data.advance));
+        if (order.data.saldo) html += adminCreateInfo("Saldo", formatPrice(order.data.saldo));
+        html += '<br>';
+
+        if (order.data.price) html += adminCreateInfo("Levermethode", delivery_method[order.data.delivery_method]);
+        if (order.data.price) html += adminCreateInfo("Timing", delivery_method_timing[order.data.delivery_method_timing]);
+        if (order.data.price) html += adminCreateInfo("Datum", formatDate(order.data.deliverydate));
+
+        $("#orderData").html(html);
+    }
+
+    function print() {
+        getSignature("#seller-signature");
+        getSignature("#buyer-signature");
+
+        $('#admin-section').printThis();
+    }
+
+    function downloadAsPdf() {
+        element = document.getElementById("admin-section");
+        let options = {
+            margin: 10,
+            filename: 'Galerij Thiels - Orderbon ' + order.id + '.pdf',
+            image: { type: 'jpeg', quality: 1 },
+            html2canvas: { scale: 4 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        html2pdf().set(options).from(element).save();
+    }
+    
+</script>

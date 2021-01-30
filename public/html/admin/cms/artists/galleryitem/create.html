@@ -1,0 +1,132 @@
+<div id="admin-section"></div>
+<div class="clear"></div>
+<br><br><hr>
+<div class="image-editor">
+    <h4>Afbeelding bewerken</h4>
+    <div class="right">
+        <button onClick="crop()">Bijsnijden</button>
+        <button onClick="saveCrop()">Opslaan</button>
+        
+    </div>
+    <div class="clear"></div>
+    <h5>Origineel</h5>
+    <img id="edit" src="" alt="">
+    <br>
+    <h5>Resultaat</h5>
+    <img id="result" src="" alt="">
+    <br>
+</div>
+
+<script type="text/javascript">
+
+    addActionButton("specialBack", "Terug");
+    addActionButton("save", "Opslaan");
+    setMainTitle("Nieuwe afbeelding");
+
+    var artist_id = getUrlParam("artist_id");
+
+    function createAdminSection() {
+        var html = '<form id="editForm" class="grid_6">';
+        html += adminCreateBigImageUpload("photo", "", "Foto");
+        html += adminCreateInput("text", "name", "", "Naam");
+        html += adminCreateInput("text", "width", "", "Breedte");
+        html += adminCreateInput("text", "height", "", "Hoogte");
+        html += adminCreateInput("text", "price", "", "Prijs");
+        html += adminCreateSelect([{value: "true", text: "Ja"}, {value: "false", text: "Nee"}], "show", "", "Zichtbaar");
+
+        html += adminCreateInput("hidden", "artist_id", artist_id);
+
+        html += '</form>'; 
+        $("#admin-section").html(html);
+    } 
+    createAdminSection();
+
+
+    $("input#photo").change(function() {
+        // Loading editor
+        let input = $(this)[0];
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+
+            reader.readAsDataURL(input.files[0]);
+            reader.onload = function (e) { 
+                $('.image-editor #edit').attr('src', e.target.result);
+            };
+        }
+    });
+    
+    var cropper;
+    var imageEdited = false;
+    var canvas;
+
+    function crop() {
+        console.log("initializing cropper");
+        var image = document.querySelector('.image-editor #edit');
+        cropper = new Cropper(image, {
+            ready: function () {
+                let cropper = this.cropper;
+                var containerData = cropper.getContainerData();
+                var cropBoxData = cropper.getCropBoxData();
+                var aspectRatio = cropBoxData.width / cropBoxData.height;
+                var newCropBoxWidth;
+            },
+
+            cropmove: function () {
+                let cropper = this.cropper;
+                var cropBoxData = cropper.getCropBoxData();
+                var aspectRatio = cropBoxData.width / cropBoxData.height;
+            },
+        });
+    }
+
+    function saveCrop() {
+        imageEdited = true;
+        canvas = cropper.getCroppedCanvas();
+        result = document.getElementById("result");
+        result.src = canvas.toDataURL();
+        cropper.destroy();
+    }
+
+    function save() {
+
+        var savingNotif = addNotification('<i class="fas fa-spinner fa-pulse"></i> Bezig met opslaan...');
+
+        var xhr = new XMLHttpRequest();
+        var formData = new FormData();
+        xhr.open('POST', '/api/galleryitem/add', true);
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        xhr.setRequestHeader('authorization', getLocalStorage("token"));
+
+        xhr.addEventListener('readystatechange', function(e) {
+            if (xhr.readyState == 4 && xhr.status == 200) {
+                removeNotification(savingNotif);
+                back(["artist_id"]);
+            }
+            else if (xhr.readyState == 4 && xhr.status != 200) {
+                removeNotification(savingNotif);
+                var response = JSON.parse(xhr.response);
+                addNotification("Fout bij opslaan: " + response.err, "failed");
+            }
+        });
+
+        formData.append('formdata', JSON.stringify(getFormData("editForm")));
+
+        if (imageEdited) {
+            canvas.toBlob(function (blob) {
+                formData.append('file', blob, Date.now() + '.jpg');
+                xhr.send(formData);
+            });
+        } else {
+            files = $('#photo').prop('files');
+            files = [...files];
+            file = files[0];
+            formData.append('file', file);
+            xhr.send(formData);
+        }
+    }
+
+    function specialBack() {
+        back(["artist_id"]);
+    }
+
+</script>

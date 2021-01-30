@@ -1,0 +1,37 @@
+<div class="compact">
+
+    <div class="grid_3">
+        <div><h1>Foires</h1></div>
+        <p class="" >
+            La galerie Thiels participe à divers salons de l’intérieur, de la décoration, de la vie et de la construction tout au long de l’année.
+            <br><br>
+            Nous vous invitons à venir nous rendre visite.
+        </p>
+    </div>
+    
+    <div id="expositions" class="grid_9"></div>
+    <br class="clear">    
+</div>
+
+
+<script type="text/javascript">
+
+    getData(   
+        "/api/exposition", 
+        function(data) {
+            console.log(data);
+            var lang = getLocalStorage("language");
+            data.forEach(exposition => {
+                if (exposition[lang].show == "false") return; 
+                var expHtml = '<div class="imgInfoContainer"><div class="img"><img src="' + exposition[lang].img + '" class="bigIcon"></div>';
+                expHtml += '<div class="info"><h3>' + exposition[lang].name + '</h3>';
+                expHtml += '<p>' + formatDate(exposition[lang].startdate) + ' - ' + formatDate(exposition[lang].enddate);
+                if (exposition[lang].info) expHtml += '<br>' + exposition[lang].info;
+                if (exposition[lang].url) expHtml += '<br><br><a href="' + exposition[lang].url + '" target="_blank"><i class="fas fa-globe"></i> ' +  exposition[lang].name + '</a>'
+                expHtml += '</p></div><br class="clear"></div>';
+                $("#expositions").append(expHtml);
+            });
+            setMainHeight();
+        });
+
+</script>

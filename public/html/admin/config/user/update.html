@@ -1,0 +1,96 @@
+<div id="admin-section"></div>
+    
+<script type="text/javascript">
+
+    addActionButton("back", "Terug");
+    addActionButton("save", "Opslaan");
+    addActionMenu([
+        { id: "remove", label: "Verwijderen" }
+    ]);
+    setMainTitle("Wijzig gebruijker");
+
+    function main() {
+        getData( "/api/admin/user?_id="+getUrlParam("id"), data => { createAdminSection(data[0]) });
+    }
+    main();
+
+    function createAdminSection(data) {
+        console.log(data);
+
+        var html = '<div class="grid_6">';
+    
+        html += '<h5>Vaste gegevens</h5>';
+        html += '<form id="fixedData">';
+        html += adminCreateInput("text", "name", (data.fixed && data.fixed.name) ? data.fixed.name : "", "Naam");
+        html += adminCreateSelect([{value: "true", text: "Ja"}, {value: "false", text: "Nee"}], "active", (data.fixed && data.fixed.active) ? data.fixed.active : "false", "Actief");
+        html += '</form><br><br>';
+
+        html += '<h5>Persoonlijke gegevens</h5>';
+        html += '<form id="userData">';        
+        html += adminCreateInput("text", "email", data.email, "E-mail");
+        html += adminCreateInput("text", "username", data.username, "Gebruikersnaam");
+        html += adminCreateInput("password", "password", "", "Wachtwoord");
+        html += adminCreateInput("password", "password_confirm", "", "Bevestig wachtwoord");
+        html += '</form><br><br>';
+
+        html += '<h5>Rechten</h5>';
+        html += '<form id="permissions">';        
+        html += adminCreateSelect([{value: "true", text: "Ja"}, {value: "false", text: "Nee"}], "admin", (data.permissions && data.permissions.admin) ? data.permissions.admin : "false", "Admin"); 
+        html += '</form>';
+
+        html += adminCreateInput("hidden", "_id", data._id);
+
+        $("#admin-section").html(html);
+    }
+
+    function save() {
+
+        var savingNotif = addNotification('<i class="fas fa-spinner fa-pulse"></i> Bezig met opslaan...');
+
+        var formData = getFormData("userData", err => {
+            removeNotification(savingNotif);
+            return addNotification("Fout bij opslaan: " + err, "failed");
+        });
+        formData.fixed = getFormData("fixedData", err => {
+            removeNotification(savingNotif);
+            return addNotification("Fout bij opslaan: " + err, "failed");
+        });        
+        formData.permissions = getFormData("permissions", err => {
+            removeNotification(savingNotif);
+            return addNotification("Fout bij opslaan: " + err, "failed");
+        });
+        $("input[type=hidden]").each(function() {
+            formData[$(this).attr('id')] = $(this).val();
+        });
+        
+        postData(
+            "/api/admin/user/update",
+            formData,
+            function(data) {
+                return back();
+            },
+            function(err) {
+                removeNotification(savingNotif);
+                return addNotification("Fout bij opslaan: " + err, "failed");
+            }
+        )
+    }
+
+    function remove() {
+        confirm("Verwijderen", "Zeker dat je deze gebruiker wil verwijderen?", function() {
+            var removingNotif = addNotification('<i class="fas fa-spinner fa-pulse"></i> Bezig met opslaan...');
+            var formData = {};
+            $("input[type=hidden]").each(function() {
+                formData[$(this).attr('id')] = $(this).val();
+            });
+            postData( "/api/admin/user/delete", formData, data => {
+                removeNotification(removingNotif);
+                back();
+            }, err => { 
+                removeNotification(removingNotif);
+                addNotification("Fout bij verwijderen: " + JSON.stringify(err), "failed");
+            });
+        }) ;
+    }
+
+</script>

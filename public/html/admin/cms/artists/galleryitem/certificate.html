@@ -1,0 +1,66 @@
+<div id="admin-section">    
+    <h1>Certificaat van authenticiteit</h1>
+    <p class="intro">
+        Dit certificaat bevestigt dat het kunstwerk hieronder beschreven een origineel werk van de kunstenaar is. Het is geen kopie of reproductie.
+    </p>
+    <div class="artwork-image"></div>
+
+    <div class="certificate-info">
+        
+        Kunstenaar: <span  class="artist-name"></span><br>
+        Titel: <span id="artwork-name"></span><br>
+        Afmetingen: <span id="artwork-size"></span><br>
+        <!-- Datum: <span id="artwork-date"></span><br> -->
+
+        <br><br>
+        <h4 class="artist-name"></h4>
+        <br><br>
+
+        ___________________________________________
+
+        <br>
+        Alle rechten voorbehouden aan de kunstenaar.
+        <br>        
+    </div>
+    <img src="/img/logo.svg" style="width: 300px;">
+
+
+</div>
+
+<script type="text/javascript">
+
+    addActionButton("back", "Terug", "back_special");    
+    addActionButton("print", "Printen");
+
+    function main() {
+        getData( "/api/artist?id=" + getUrlParam("artist_id"), artist => {
+            getData( "/api/galleryitem?_id="+getUrlParam("id"), galleryitems => {
+                createAdminSection(artist, galleryitems);
+            });
+        });
+    }
+    main();
+
+    function createAdminSection(artist, galleryitems) {
+        // $("#admin-section").empty();
+        var galleryItem = galleryitems[0];
+        console.log(galleryItem, artist);
+
+        $(".artwork-image").html('<img src="/img/uploads/' + getImageFilename(galleryItem.photo) + '"/>');
+        $(".artist-name").html(artist.fixed.name);
+        $("#artwork-name").html(galleryItem.data.name);
+        $("#artwork-size").html(galleryItem.data.width + ' x ' + galleryItem.data.height + ' cm');
+        $("#artwork-date").html(formatDate(galleryItem.data.date));
+
+    } 
+
+    function back_special() {
+        back(["artist_id"]);
+    }
+
+    function print() {
+        $('#admin-section').printThis();
+    }
+
+    
+</script>
