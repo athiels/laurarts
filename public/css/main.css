@@ -1138,7 +1138,7 @@ i {
 
 #galleries {
   display: flex;
-  justify-content: space-between;
+  justify-content: space-evenly;
   flex-wrap: wrap;
 }
 
@@ -1194,7 +1194,7 @@ i {
   }
 
   .galleries-gallery .img-detail img {
-    transition: all 2s ease-in-out;
+    transition: all 4s ease-in-out;
   }
 
   .galleries-gallery-scroll-up {

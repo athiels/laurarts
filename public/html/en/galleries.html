@@ -27,24 +27,25 @@
                 if (gallery.fixed.show == "false") return;
                 var url = (gallery.fixed.custom_url && gallery.fixed.custom_url_active == "true") ? gallery.fixed.custom_url : "/gallery/id/" + gallery._id;
 
-                html = '<a href="'+url+'">';
-                html += '<div class="galleries-gallery">';
-                    html += '<div class="title">';
-                        html += '<div class="text-center">';                            
-                            html += '<h2>' + gallery.fixed.name + '</h2>';
+                
+                html = '<div class="galleries-gallery">';
+                    html += '<a href="'+url+'">';
+                        html += '<div class="title">';
+                            html += '<div class="text-center">';                            
+                                html += '<h2>' + gallery.fixed.name + '</h2>';
+                            html += '</div>';
                         html += '</div>';
-                    html += '</div>';
 
-                    html += '<div class="description">';
-                        html += '<p>' + gallery.fixed.short_description + '</p>';
-                    html += '</div>'
+                        html += '<div class="description">';
+                            html += '<p>' + gallery.fixed.short_description + '</p>';
+                        html += '</div>'
 
-                    html += '<div class="img-detail">';
-                        html += '<img src="/img/uploads/' + getImageFilename(gallery.avatar.photo) + '" class="" alt="">';
-                    html += '</div>'
-
+                        html += '<div class="img-detail">';
+                            html += '<img src="/img/uploads/' + getImageFilename(gallery.avatar.photo) + '" class="" alt="">';
+                        html += '</div>'
+                    html += '</a>';
                 html += '</div>';
-                html += '</a>';
+                
             
                 $("#galleries").append(html);
 
@@ -57,10 +58,17 @@
 
 
 
-    $(window).on('DOMMouseScroll mousewheel', function(event) {
-        let direction;
-        if (event.originalEvent.detail < 0 || event.originalEvent.wheelDelta >= 0) direction = "up";
-        else direction = "down";
+    // MOBILE AUTO SCROLLING
+    var ts;
+    $(document).on('touchstart', function (e) {
+        ts = e.originalEvent.touches[0].clientY;
+    });
+
+    $(document).on('touchend', function (e) {
+        var te = e.originalEvent.changedTouches[0].clientY;
+        if(ts > te+5) direction = "down" 
+        else if(ts < te-5) direction = "up";
+
         $("#galleries .galleries-gallery").each(function() {
             if (isScrolledIntoView($(this))) {
                 $(this).find(".img-detail img")
