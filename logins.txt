@@ -1,6 +1,10 @@
 MONGO DB ATLAS ACCOUNT:
+schrauwen.laura@hotmail.com
+K{2Es~+3<a7?fNb]
 
 DB USER
+dbUser
+Jt3nwtChIZzdv3Y0
 
 HEROKU
 schrauwen.laura@hotmail.com

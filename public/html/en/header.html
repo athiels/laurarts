@@ -1,36 +1,52 @@
-<nav class="compact">
-    <div class="nav-section nav-section-brand">
-        <a class="navbar-brand" href="/home"><img src="/img/logo.png"/></a>
-    </div>
+<nav>
+    <div class="compact">
 
-    <div class="nav-section nav-section-nav" >
-        <ul class="nav-list languagebar">
-            <li><a href="#" id="nl" onclick="changeLanguage(this.id)">NL</a></li>
-            <li><a href="#" id="fr" onclick="changeLanguage(this.id)">FR</a></li>
-            <li><a href="#" id="en" onclick="changeLanguage(this.id)">EN</a></li>
-        </ul>
-
-        <ul class="navbar nav-list smartphone-hide">
-            <li><a href="/artists">Artists</a></li>
-            <li><a href="/gallery">Gallery</a></li>
-            <li><a href="/openinghours">Opening hours</a></li>
-            <li><a href="/expositions">Expositions</a></li>
-            <li><a href="/contact">Contact</a></li>
-        </ul>
+        <div class="flex-container">
+            <div class="toggle-menu">
+                <i class="fas fa-bars"></i>
+            </div>
+            <div class="menu-main">
+                <div class="text-center">
+                    <a class="navbar-brand" href="/home">
+                        <img src="/img/logo.svg" alt="Logo Galerij Thiels">
+                    </a>
+                    <ul class="navbar nav-list">
+                        <li><a href="/home">Home.</a></li>                            
+                        <li><a href="/galleries">Galleries.</a></li>
+                        <li><a href="/impressions">Impressions.</a></li>
+                        <li><a href="/about-us">About.</a></li>
+                        <li><a href="/contact">Contact.</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
     </div>
 </nav>
 
 
 
+
 <script>
-    $(document).ready(function() {
+
+    $(document).ready(function () {
         var lang = getLocalStorage("language");
-        $("#"+lang).addClass("languagebar-active");
+        $("#" + lang).addClass("languagebar-active");
+
+        var currentpage = window.location.pathname.split("/")[1];
+        $('a[href*=' + currentpage + ']:not(".navbar-brand")').addClass("navbar-active");
     });
 
     function changeLanguage(lang) {
         setLocalStorage("language", lang);
         window.location.reload();
     }
+
+    $('.toggle-menu').click(function () {
+        $('.navbar').slideToggle(500);
+    });
+
+    $(window).resize(function () {
+        if ($(window).width() > 1270) $('.navbar').show();
+        else $('.navbar').hide();
+    });
 </script>
-               

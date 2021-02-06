@@ -24,7 +24,6 @@ function adminLoad(section, template, failedCb) {
 		'/view/admin/' + template,
 		function (data) {
 			if (data.logout) return logOut();
-
 			$("#" + section).html(data);
 		},
 		function () {
@@ -271,7 +270,7 @@ function getRandom(arr, n) {
 }
 
 function setDocumentTitle(title) {
-	document.title = "Laurarts - " + (title ? ' - ' + title : '');
+	document.title = "LAURARTS" + (title ? ' - ' + title : '');
 }
 
 function setMetaTag(tag, content) {

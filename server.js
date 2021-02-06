@@ -26,5 +26,3 @@ const server = app.listen(port, function() {
 	console.log("App is listening on port "+port);
 });
 server.timeout = 1000 * 60 * 10; // 10 minutes
-
-require("./api/controllers/dummydata");

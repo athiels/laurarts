@@ -13,65 +13,36 @@ if (!fs.existsSync(config.uploadDir)) { fs.mkdirSync(config.uploadDir); }
 // API ROUTES
 
 
-// EXPOSITION 
-const exposition = require('./api/controllers/exposition');
+// GALLERY 
+const gallery = require('./api/controllers/gallery');
 
-router.get('/api/exposition', async (req, res) => {
+router.get('/api/gallery', async (req, res) => {
 	try {
-		var data = await exposition.get(req.query.id);
+		var data = await gallery.get(req.query);
 		return res.json(data).status(200);
 	} catch (err) { return res.status(500).json(err); }
 });
-router.post('/api/exposition/create', verifyToken, async (req, res) => {
+router.post('/api/gallery/create', verifyToken, async (req, res) => {
 	try {
-		var data = await exposition.create(req.body, req.files);
+		var data = await gallery.create(req.body, req.files);
 		return res.json(data).status(200);
 	} catch (err) { return res.status(500).json(err); }
 });
-router.post('/api/exposition/update', verifyToken, async (req, res) => {
+router.post('/api/gallery/update', verifyToken, async (req, res) => {
 	try {
-		var data = await exposition.update(req.body, req.files);
+		var data = await gallery.update(req.body, req.files);
 		return res.json(data).status(200);
 	} catch (err) { return res.status(500).json(err); }
 });
-router.post('/api/exposition/delete', verifyToken, async (req, res) => {
+router.post('/api/gallery/delete', verifyToken, async (req, res) => {
 	try {
-		var data = await exposition.delete(req.body);
+		var data = await gallery.delete(req.body);
 		return res.json(data).status(200);
 	} catch (err) { return res.status(500).json(err); }
 });
-
-
-// ARTIST 
-const artist = require('./api/controllers/artist');
-
-router.get('/api/artist', async (req, res) => {
+router.post('/api/gallery/update-positions', verifyToken, async (req, res) => {
 	try {
-		var data = await artist.get(req.query);
-		return res.json(data).status(200);
-	} catch (err) { return res.status(500).json(err); }
-});
-router.post('/api/artist/create', verifyToken, async (req, res) => {
-	try {
-		var data = await artist.create(req.body, req.files);
-		return res.json(data).status(200);
-	} catch (err) { return res.status(500).json(err); }
-});
-router.post('/api/artist/update', verifyToken, async (req, res) => {
-	try {
-		var data = await artist.update(req.body, req.files);
-		return res.json(data).status(200);
-	} catch (err) { return res.status(500).json(err); }
-});
-router.post('/api/artist/delete', verifyToken, async (req, res) => {
-	try {
-		var data = await artist.delete(req.body);
-		return res.json(data).status(200);
-	} catch (err) { return res.status(500).json(err); }
-});
-router.post('/api/artist/update-positions', verifyToken, async (req, res) => {
-	try {
-		var data = await artist.updatePositions(req.body);
+		var data = await gallery.updatePositions(req.body);
 		return res.json(data).status(200);
 	} catch (err) { return res.status(500).json(err); }
 });
@@ -163,116 +134,7 @@ router.post('/api/urlrewrite/delete', verifyToken, async (req, res) => {
 	} catch (err) { return res.json(err).status(500); }
 });
 
-// ARTIST AT WORK
-const artistAtWork = require('./api/controllers/artistatwork');
 
-router.get('/api/artistatwork', async (req, res) => {
-	try {
-		var data = await artistAtWork.get(req.query);
-		return res.json(data).status(200);
-	} catch (err) { return res.status(500).json(err); }
-});
-router.post('/api/artistatwork/create', verifyToken, async (req, res) => {
-	try {
-		var data = await artistAtWork.create(req.body, req.files);
-		return res.json(data).status(200);
-	} catch (err) { return res.status(500).json(err); }
-});
-router.post('/api/artistatwork/update', verifyToken, async (req, res) => {
-	try {
-		var data = await artistAtWork.update(req.body, req.files);
-		return res.json(data).status(200);
-	} catch (err) { return res.status(500).json(err); }
-});
-router.post('/api/artistatwork/delete', verifyToken, async (req, res) => {
-	try {
-		var data = await artistAtWork.delete(req.body);
-		return res.json(data).status(200);
-	} catch (err) { return res.status(500).json(err); }
-});
-
-
-// REVIEWS
-const review = require('./api/controllers/review');
-
-router.get('/api/review', async (req, res) => {
-	try {
-		var data = await review.get(req.query);
-		return res.json(data).status(200);
-	} catch (err) { console.log(err); return res.status(500).json(err); }
-});
-router.post('/api/review/create', async (req, res) => {
-	try {
-		var data = await review.create(req.body);
-		return res.json(data).status(200);
-	} catch (err) { console.log(err); return res.status(500).json(err); }
-});
-router.post('/api/review/update', verifyToken, async (req, res) => {
-	try {
-		var data = await review.update(req.body);
-		return res.json(data).status(200);
-	} catch (err) { return res.status(500).json(err); }
-});
-router.post('/api/review/delete', verifyToken, async (req, res) => {
-	try {
-		var data = await review.delete(req.body);
-		return res.json(data).status(200);
-	} catch (err) { return res.status(500).json(err); }
-});
-
-// NOTIFICATIONS
-const notification = require('./api/controllers/notification');
-
-router.get('/api/notification', async (req, res) => {
-	try {
-		let data = await notification.get(req.query);
-		return res.json(data).status(200);
-	} catch (err) { return res.status(500).json(err); }
-});
-router.post('/api/notification/create', async (req, res) => {
-	try {
-		let data = await notification.create(req.body);
-		return res.json(data).status(200);
-	} catch (err) {return res.status(500).json(err); }
-});
-router.post('/api/notification/acknowledge', async (req, res) => {
-	try {
-		let data = await notification.acknowledge(req.body);
-		return res.json(data).status(200);
-	} catch (err) { return res.status(500).json(err); }
-});
-router.post('/api/notification/delete', async (req, res) => {
-	try {
-		let data = await notification.delete(req.body);
-		return res.json(data).status(200);
-	} catch (err) { return res.status(500).json(err); }
-});
-
-
-
-// Newsletter
-const newsletter = require('./api/controllers/newsletter');
-router.get('/api/newsletter/subscriptions', async (req, res) => {
-	try {
-		let data = await newsletter.getSubscriptions(req.query);
-		return res.json(data).status(200);
-	} catch (err) { return res.status(500).json(err); }
-});
-router.post('/api/newsletter/subscribe', async (req, res) => {
-	try {
-		let data = await newsletter.subscribe(req.body);
-		return res.json(data).status(200);
-	} catch (err) { console.log(err); return res.status(500).json(err); }
-});
-router.post('/api/newsletter/unsubscribe', async (req, res) => {
-	try {
-		let data = await newsletter.unsubscribe(req.body);
-		return res.json(data).status(200);
-	} catch (err) {return res.status(500).json(err); }
-});
-
-
-// ADMIN
 
 // DATABASE
 const database = require('./database/database');
@@ -386,34 +248,6 @@ router.post('/api/sales/customer/delete', verifyToken, async (req, res) => {
 });
 
 
-// SALES - PRESENTATIONS
-const presentation = require('./api/controllers/presentation');
-
-router.get('/api/sales/presentation', async (req, res) => {
-	try {
-		var data = await presentation.get(req.query);
-		return res.json(data).status(200);
-	} catch (err) { return res.status(500).json(err); }
-});
-router.post('/api/sales/presentation/create', verifyToken, async (req, res) => {
-	try {
-		var data = await presentation.create(req.body, req.files);
-		return res.json(data).status(200);
-	} catch (err) { return res.status(500).json(err); }
-});
-router.post('/api/sales/presentation/update', verifyToken, async (req, res) => {
-	try {
-		var data = await presentation.update(req.body, req.files);
-		return res.json(data).status(200);
-	} catch (err) { console.log(err); return res.status(500).json(err); }
-});
-router.post('/api/sales/presentation/delete', verifyToken, async (req, res) => {
-	try {
-		var data = await presentation.delete(req.body);
-		return res.json(data).status(200);
-	} catch (err) { return res.status(500).json(err); }
-});
-
 // SALES - ORDERS
 const order = require('./api/controllers/order');
 
@@ -441,58 +275,6 @@ router.post('/api/sales/order/delete', verifyToken, async (req, res) => {
 		return res.json(data).status(200);
 	} catch (err) { return res.status(500).json(err); }
 });
-
-// SALES - INVOICES
-// USERS
-const invoice = require('./api/controllers/invoice');
-router.get('/api/sales/invoice', async (req, res) => {
-	try {
-		var data = await invoice.get(req.query);
-		return res.json(data).status(200);
-	} catch (err) { return res.json(err).status(500); }
-});
-router.post('/api/sales/invoice/create', async (req, res) => {
-	try {
-		var data = await invoice.create(req.body);
-		return res.json(data).status(200);
-	} catch (err) { return res.json(err).status(500); }
-});
-router.post('/api/sales/invoice/delete', async (req, res) => {
-	try {
-		var data = await invoice.delete(req.body);
-		return res.json(data).status(200);
-	} catch (err) { return res.json(err).status(500); }
-});
-
-
-// TASKS
-const task = require('./api/controllers/task');
-
-router.get('/api/sales/task', async (req, res) => {
-	try {
-		var data = await task.get(req.query);
-		return res.json(data).status(200);
-	} catch (err) { return res.status(500).json(err); }
-});
-router.post('/api/sales/task/create', verifyToken, async (req, res) => {
-	try {
-		var data = await task.create(req.body);
-		return res.json(data).status(200);
-	} catch (err) { return res.status(500).json(err); }
-});
-router.post('/api/sales/task/update', verifyToken, async (req, res) => {
-	try {
-		var data = await task.update(req.body);
-		return res.json(data).status(200);
-	} catch (err) { console.log(err); return res.status(500).json(err); }
-});
-router.post('/api/sales/task/delete', verifyToken, async (req, res) => {
-	try {
-		var data = await task.delete(req.body);
-		return res.json(data).status(200);
-	} catch (err) { return res.status(500).json(err); }
-});
-
 
 
 
@@ -615,7 +397,7 @@ async function verifyToken(req, res, next) {
 				var loginUser = await user.get({ _id: decoded.user._id });
 				loginUser = loginUser[0];
 				if (loginUser.fixed && loginUser.fixed.active == "true") next();
-				if (loginUser.fixed && loginUser.fixed.active == "false") res.redirect('/view/admin/logout');
+				else res.redirect('/view/admin/logout');
 			} catch (err) { return res.sendStatus(403); }
 		} catch (err) { res.sendStatus(403); }
 	} else { res.sendStatus(403); }

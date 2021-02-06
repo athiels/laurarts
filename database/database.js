@@ -1,10 +1,12 @@
 const mongoose = require('mongoose');
 
 var _db;
-const dbURI = 'mongodb+srv://galerijthiels:^wA8TkVbuCA$}[qh@freecluster-jcut4.gcp.mongodb.net/galerij_thiels?retryWrites=true&w=majority';
+const dbURI = 'mongodb+srv://dbUser:Jt3nwtChIZzdv3Y0@cluster0.yj9ne.mongodb.net/production?retryWrites=true&w=majority';
 const dbOptions = { useNewUrlParser: true, useUnifiedTopology: true, autoReconnect: true, useFindAndModify: false }
 
 var db = mongoose.connection;
+
+console.log("DB");
 
 db.on('connecting', function() {
 	console.log('connecting to MongoDB...');

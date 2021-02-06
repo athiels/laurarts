@@ -12,12 +12,9 @@
                 <div class="flex-container-right">
                     <div class="flex-item">
                         <ul class="navbar nav-list">
-                            <li><a href="/admin/gallery/artists">Galerij</a></li>
-                            <li><a href="/admin/statistics/customers">Statistieken</a></li>                            
-                            <li><a href="/admin/sales/customer">Verkoop</a></li>
+                            <li><a href="/admin/sales/customer" style="display: none;">Verkoop</a></li>
                             <li><a href="/admin/cms/artists">Website</a></li>
                             <li><a href="/admin/config/database">Config</a></li>  
-                            <li id="notifications-button"></li>
                             <li id="username"></li>
                             <li><a href="/admin/logout"><i class="fas fa-sign-out-alt" title="Afmelden"></i></a></li>                          
                         </ul>
@@ -50,8 +47,6 @@
             if (admin == "true") $("#username").html('<a href="/admin/config/user/update?id=' + user._id + '" title="' + user.fixed.name + '"><i class="fas fa-user-alt"></i></a>');
         }
 
-        
-        adminLoad("notifications-button", "notifications/notifications-button");
     });
 
     function changeLanguage(lang) {

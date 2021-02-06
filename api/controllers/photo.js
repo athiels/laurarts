@@ -6,8 +6,6 @@ const Photo = mongoose.model('Photo');
 const fileupload = require("./fileupload");
 const config = require("../config/config");
 
-const notification = require('./notification');
-
 module.exports.create = async function(uploadFile, squareThumbnail) {
 	return new Promise(async function(resolve, reject) {
 
@@ -176,18 +174,6 @@ module.exports.restore = async function() {
         });
 
         console.log(`${new Date().toISOString()} | Photos restored: ${result.success.length} with success - ${result.failed.length} failed`);
-
-        if (result.failed.length) {
-            // Create notification
-            try {
-                const notificationOptions = {
-                    title: "Foto's zijn hersteld",
-                    message: `${result.success.length} / ${status.notFound.length} foto's succesvol hersteld`,
-                    url: "https://galerijthiels.be/admin/config/photo"
-                }
-                await notification.create(notificationOptions);
-            } catch(err) { return reject(err); }
-        }
 
         return resolve(result);
 	});

@@ -5,7 +5,7 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Galerij Thiels</title>
+    <title>LAURARTS</title>
     <meta name="description" content="">
 
     <link rel="stylesheet" href="/css/main.css" defer>
@@ -14,8 +14,7 @@
     <link rel="stylesheet" href="/css/component.css" defer>
     <link rel="stylesheet" href="/css/photoswipe.min.css" defer>
     <link rel="stylesheet" href="/css/default-skin/default-skin.min.css" defer>
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css"
-        integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous" defer>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" defer>
     <link rel="stylesheet" href="/css/slick.css" defer/>
     <link rel="stylesheet" href="/css/slick-theme.css" defer/>
     <link rel="stylesheet" href="/css/jquery-confirm.min.css" defer>
@@ -66,9 +65,9 @@
             style="display:none;visibility:hidden"></iframe></noscript> -->
     <!-- End Google Tag Manager (noscript) -->
 
-    <!-- <section id="header"></section> -->
+    <section id="header"></section>
     <section id="main"></section>
-    <!-- <section id="footer"></section> -->
+    <section id="footer"></section>
     <!-- <section id="cookiesConsent"></section> -->
 
     <div id="msie">
@@ -80,10 +79,10 @@
 </body>
 <script>
     $(document).ready(function () {
-        if (!getLocalStorage("language")) setLocalStorage("language", "nl");
-        // load("header", "header");
+        if (!getLocalStorage("language")) setLocalStorage("language", "en");
+        load("header", "header");
         load("main", window.location.pathname);
-        // load("footer", "footer");
+        load("footer", "footer");
         // load("cookiesConsent", "cookies-consent");
     });
 

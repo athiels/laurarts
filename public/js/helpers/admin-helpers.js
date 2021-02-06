@@ -66,14 +66,14 @@ function adminCreateSelect(options, id, value, label) {
 function adminCreateTextarea(id, value, label, maxlength) {
     content = (value) ? value.replace(/<br\s*\/?>/gi, '\n') : '';
     let html = '<div class="admin-input">' + (label ? '<label for="' + id + '">' + label + ':</label>' : '') + '<textarea id="' + id + '" ' + (maxlength ? 'maxlength="' + maxlength + '"' : '') + '>' + content + '</textarea></div>';
-    if (maxlength) html += '<div class="info">Maximum ' + maxlength + ' karakters.</div>';
+    if (maxlength) html += '<div class="info">Maximum ' + maxlength + ' characters.</div>';
     return html;
 }
 
 function adminCreateRequiredTextarea(id, value, label, maxlength) {
     content = (value) ? value.replace(/<br\s*\/?>/gi, '\n') : '';
     let html = '<div class="admin-input">' + (label ? '<label for="' + id + '">' + label + ':</label>' : '') + '<textarea id="' + id + '" ' + (maxlength ? 'maxlength="' + maxlength + '"' : '') + ' required>' + content + '</textarea></div>';
-    if (maxlength) html += '<div class="info">Maximum ' + maxlength + ' karakters.</div>';
+    if (maxlength) html += '<div class="info">Maximum ' + maxlength + ' characters.</div>';
     return html;
 }
 
