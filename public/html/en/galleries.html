@@ -55,4 +55,30 @@
         }
     );
 
+
+
+    $(window).on('DOMMouseScroll mousewheel', function(event) {
+        let direction;
+        if (event.originalEvent.detail < 0 || event.originalEvent.wheelDelta >= 0) direction = "up";
+        else direction = "down";
+        $("#galleries .galleries-gallery").each(function() {
+            if (isScrolledIntoView($(this))) {
+                $(this).find(".img-detail img")
+                    .removeClass("galleries-gallery-scroll-up")
+                    .removeClass("galleries-gallery-scroll-down")
+                    .addClass("galleries-gallery-scroll-" + direction);
+            }
+        });
+    });
+
+    function isScrolledIntoView(elem) {
+        var docViewTop = $(window).scrollTop();
+        var docViewBottom = docViewTop + $(window).height();
+
+        var elemTop = $(elem).offset().top;
+        var elemBottom = elemTop + $(elem).height();
+
+        return ((elemBottom <= docViewBottom) && (elemTop >= docViewTop));
+    }
+
 </script>
