@@ -75,17 +75,13 @@
                 //     .removeClass("galleries-gallery-scroll-down")
                 //     .addClass("galleries-gallery-scroll-" + direction);
 
-                
-                let imageHeight = $(this).find("img").height();
+                let windowHeight = $(window).height();
+                let imageHeight = $(this).find("img").height();                
                 let imageOffset = $(window).scrollTop() - $(this).offset().top + imageHeight;
                 if (imageOffset < 0) imageOffset = 0;
-                let windowHeight = $(window).height();
+                
 
-                console.log($(window).scrollTop(), $(this).offset().top, imageHeight);
-
-                // console.log(imageHeight, windowHeight, imageOffset);
                 translateY = (imageOffset / windowHeight) * -100;
-                // console.log(translateY);
 
                 $(this).find("img").css("transform", "translateY("+ translateY +"%)");
             }
@@ -102,6 +98,6 @@
         return ((elemBottom <= docViewBottom) && (elemTop >= docViewTop));
     }
 
-    // alert(CSS.supports("object-position", "top"))
+    // alert(CSS.supports("clip-path", "inset(0 0 0 0)"))
 
 </script>
