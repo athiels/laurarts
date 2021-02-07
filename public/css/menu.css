@@ -59,7 +59,7 @@
 	width: 220px;
 }
 
-@media(max-width: 1270px) {
+@media(max-width: 867px) {
 	.nav-list li {
 		display: block;
 	}

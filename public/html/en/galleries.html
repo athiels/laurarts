@@ -44,8 +44,7 @@
                             html += '<img src="/img/uploads/' + getImageFilename(gallery.avatar.photo) + '" class="" alt="">';
                         html += '</div>'
                     html += '</a>';
-                html += '</div>';
-                
+                html += '</div>';                
             
                 $("#galleries").append(html);
 
@@ -64,17 +63,31 @@
         ts = e.originalEvent.touches[0].clientY;
     });
 
-    $(document).on('touchend', function (e) {
+    $(document).on('touchmove touchend touchcancel', function (e) {
         var te = e.originalEvent.changedTouches[0].clientY;
         if(ts > te+5) direction = "down" 
         else if(ts < te-5) direction = "up";
 
-        $("#galleries .galleries-gallery").each(function() {
+        $(".img-detail").each(function() {
             if (isScrolledIntoView($(this))) {
-                $(this).find(".img-detail img")
-                    .removeClass("galleries-gallery-scroll-up")
-                    .removeClass("galleries-gallery-scroll-down")
-                    .addClass("galleries-gallery-scroll-" + direction);
+                // $(this).find("img")
+                //     .removeClass("galleries-gallery-scroll-up")
+                //     .removeClass("galleries-gallery-scroll-down")
+                //     .addClass("galleries-gallery-scroll-" + direction);
+
+                
+                let imageHeight = $(this).find("img").height();
+                let imageOffset = $(window).scrollTop() - $(this).offset().top + imageHeight;
+                if (imageOffset < 0) imageOffset = 0;
+                let windowHeight = $(window).height();
+
+                console.log($(window).scrollTop(), $(this).offset().top, imageHeight);
+
+                // console.log(imageHeight, windowHeight, imageOffset);
+                translateY = (imageOffset / windowHeight) * -100;
+                // console.log(translateY);
+
+                $(this).find("img").css("transform", "translateY("+ translateY +"%)");
             }
         });
     });
@@ -88,5 +101,7 @@
 
         return ((elemBottom <= docViewBottom) && (elemTop >= docViewTop));
     }
+
+    // alert(CSS.supports("object-position", "top"))
 
 </script>
